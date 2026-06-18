@@ -15,9 +15,9 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: "SunLeads AI — AI-Powered Lead Generation for Solar",
+  title: "SunLeads AI — We Fill Solar Calendars. You Close Deals.",
   description:
-    "We fill your calendar with qualified solar appointments using AI that calls every lead in under 60 seconds. Book your free strategy call today.",
+    "AI appointment-setting for solar companies. Ads, 60-second follow-up, qualification, and booking — one system that turns homeowners into appointments on your reps' calendars. Book a strategy call.",
 };
 
 export default function RootLayout({

@@ -3,9 +3,9 @@
 import { useEffect, useState } from "react";
 
 const NAV_LINKS = [
+  { label: "Problem", href: "#problem" },
   { label: "How It Works", href: "#how-it-works" },
-  { label: "Results", href: "#results" },
-  { label: "About", href: "#about" },
+  { label: "Offer", href: "#offer" },
   { label: "FAQ", href: "#faq" },
 ];
 
@@ -76,7 +76,7 @@ export default function Nav() {
 
         {/* Desktop CTA */}
         <a
-          href="#book"
+          href="#a2p-form"
           className="hidden rounded-lg px-6 py-2.5 text-sm font-semibold transition-all duration-200 md:inline-flex"
           style={{
             background: "#7FFF00",
@@ -89,7 +89,7 @@ export default function Nav() {
             e.currentTarget.style.background = "#7FFF00";
           }}
         >
-          Book a Call
+          Book Audit
         </a>
 
         {/* Mobile Hamburger */}
@@ -151,12 +151,12 @@ export default function Nav() {
           </a>
         ))}
         <a
-          href="#book"
+          href="#a2p-form"
           onClick={() => setMobileOpen(false)}
           className="mt-4 rounded-lg px-8 py-3 text-base font-semibold"
           style={{ background: "#7FFF00", color: "#000" }}
         >
-          Book a Call
+          Book Audit
         </a>
       </div>
     </nav>

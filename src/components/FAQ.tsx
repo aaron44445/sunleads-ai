@@ -4,29 +4,39 @@ import { useEffect, useRef, useState } from "react";
 
 const FAQS = [
   {
-    question: "Does the AI actually sound human?",
+    question: "How is this different from buying leads from a lead gen company?",
     answer:
-      "Yes. Built on the latest voice AI technology, our callers sound natural in conversation. Homeowners just know someone called them back fast.",
+      "Lead gen companies sell you a name and a phone number. We build the full pipeline — from ad to qualified, booked appointment. You're not buying leads. You're buying sits with pre-vetted homeowners who agreed to a specific time on your calendar.",
   },
   {
-    question: "How much do I need to spend on ads?",
+    question: "What counts as a \"qualified\" appointment?",
     answer:
-      "We recommend $50\u2013$100/day for solar campaigns. This generates a consistent flow of leads in your service area. Ad spend goes directly to Facebook \u2014 not through us.",
+      "Homeowner (not renter), roof in serviceable condition, $150+ electric bill, 650+ credit score or cash/loan-ready, decision-maker present or scheduled, in your service area, and confirmed the appointment time. If it doesn't meet all seven, it doesn't count toward your 30.",
   },
   {
-    question: "What if the leads aren\u2019t qualified?",
+    question: "What if I already have a CRM and ad account?",
     answer:
-      "Our AI asks qualifying questions before booking \u2014 homeownership, roof condition, electric bill, and timeline. Only qualified homeowners make it to your calendar.",
+      "We work inside your existing ad account and CRM. You keep full ownership of everything — the ad account, the leads, the data, the funnel. Nothing is locked behind our system.",
   },
   {
-    question: "Is this compliant with calling regulations?",
+    question: "How much ad spend do I need?",
     answer:
-      "100%. We follow all FCC and TCPA guidelines. Every lead opts in through the ad form, the AI discloses it\u2019s automated, and opt-out is offered on every call.",
+      "Minimum $50/day, paid directly to Meta. You control the ad account. We recommend $75–$100/day for faster ramp-up in competitive markets, but $50/day is enough to start generating qualified appointments.",
   },
   {
-    question: "What happens if I don\u2019t see results?",
+    question: "What happens if I don't get 30 appointments?",
     answer:
-      "We keep working until you do \u2014 at no extra cost. We don\u2019t collect a check and disappear. If the system isn\u2019t delivering, we optimize until it does.",
+      "We keep running the system at no additional charge until we deliver all 30. The guarantee is simple — we don't stop until you have 30 qualified, booked sits.",
+  },
+  {
+    question: "Do I need to do anything on my end?",
+    answer:
+      "Your reps show up to appointments and close. That's it. We handle the ads, the AI calling, the qualification, the booking, and the no-show prevention. You'll need to grant Meta ad account access and provide your reps' calendar availability during onboarding.",
+  },
+  {
+    question: "How fast do I start seeing appointments?",
+    answer:
+      "Most campaigns start generating qualified appointments within the first 7–10 days after launch. Full pipeline load (consistent daily flow) typically happens by week 3–4. We don't promise overnight results — we promise a system that compounds.",
   },
 ];
 
@@ -68,7 +78,7 @@ export default function FAQ() {
       id="faq"
       className="relative overflow-hidden px-6 py-12 sm:py-16"
     >
-      {/* ── Section Header ── */}
+      {/* Section Header */}
       <div className="mx-auto max-w-6xl text-center" data-reveal>
         {/* Section Tag */}
         <div className="mb-4 flex items-center justify-center gap-4">
@@ -100,7 +110,7 @@ export default function FAQ() {
         </h2>
       </div>
 
-      {/* ── FAQ Items ── */}
+      {/* FAQ Items */}
       <div className="mx-auto mt-8" style={{ maxWidth: "740px" }}>
         {FAQS.map((faq, i) => {
           const isOpen = openItems.includes(i);
@@ -152,7 +162,7 @@ export default function FAQ() {
               <div
                 className="overflow-hidden transition-all duration-500 ease-out"
                 style={{
-                  maxHeight: isOpen ? "300px" : "0px",
+                  maxHeight: isOpen ? "400px" : "0px",
                   opacity: isOpen ? 1 : 0,
                 }}
               >
