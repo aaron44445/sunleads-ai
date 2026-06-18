@@ -117,7 +117,7 @@ export default function OnboardClient({
         />
       )}
       {step === 2 && (
-        <StepBusinessInfo data={data} onNext={handleNext} loading={loading} />
+        <StepBusinessInfo data={data} onNext={handleNext} loading={loading} token={token} />
       )}
       {step === 3 && (
         <StepSlack data={data} onNext={handleNext} loading={loading} />

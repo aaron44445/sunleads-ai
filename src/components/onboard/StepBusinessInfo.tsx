@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import type { OnboardingData } from "@/lib/types";
 import GlassCard from "./GlassCard";
 
@@ -22,15 +22,61 @@ export default function StepBusinessInfo({
   data,
   onNext,
   loading,
+  token,
 }: {
   data: OnboardingData;
   onNext: (data: Record<string, unknown>) => void;
   loading: boolean;
+  token: string;
 }) {
   const [formError, setFormError] = useState("");
   const [financing, setFinancing] = useState<string[]>(
     data.financing_products ? data.financing_products.split(", ") : []
   );
+  const [logoUrl, setLogoUrl] = useState(data.logo_url || "");
+  const [adPhotoUrls, setAdPhotoUrls] = useState<string[]>(
+    data.ad_photos_url ? data.ad_photos_url.split(",") : []
+  );
+  const [uploading, setUploading] = useState<string | null>(null);
+
+  async function uploadFile(file: File, field: string): Promise<string | null> {
+    const body = new FormData();
+    body.append("file", file);
+    body.append("token", token);
+    body.append("field", field);
+
+    const res = await fetch("/api/onboard/upload", { method: "POST", body });
+    const result = await res.json();
+    if (!res.ok) {
+      setFormError(result.error || "Upload failed.");
+      return null;
+    }
+    return result.url;
+  }
+
+  async function handleLogoSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading("logo");
+    setFormError("");
+    const url = await uploadFile(file, "logo");
+    if (url) setLogoUrl(url);
+    setUploading(null);
+  }
+
+  async function handlePhotosSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    setUploading("photos");
+    setFormError("");
+    const urls: string[] = [...adPhotoUrls];
+    for (const file of Array.from(files)) {
+      const url = await uploadFile(file, "ad-photos");
+      if (url) urls.push(url);
+    }
+    setAdPhotoUrls(urls);
+    setUploading(null);
+  }
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -57,8 +103,8 @@ export default function StepBusinessInfo({
       differentiators: fd.get("differentiators") as string,
       financing_products: financing.join(", ") || null,
       testimonials_url: (fd.get("testimonials_url") as string) || null,
-      logo_url: (fd.get("logo_url") as string) || null,
-      ad_photos_url: (fd.get("ad_photos_url") as string) || null,
+      logo_url: logoUrl || null,
+      ad_photos_url: adPhotoUrls.length > 0 ? adPhotoUrls.join(",") : null,
       home_address: (fd.get("home_address") as string) || null,
     };
 
@@ -246,7 +292,7 @@ export default function StepBusinessInfo({
         <Divider />
         <SectionHeader label="Creative Assets" />
         <p className="text-xs" style={{ color: "#8B95A8" }}>
-          Paste a link (Google Drive, Dropbox, etc.) or share files in the Slack channel after setup.
+          Upload your logo and 2–3 photos we can use in your ads.
         </p>
 
         <Field
@@ -257,20 +303,79 @@ export default function StepBusinessInfo({
           textarea
           optional
         />
-        <Field
-          name="logo_url"
-          label="Logo"
-          placeholder="Link to your logo file (PNG or SVG preferred)"
-          defaultValue={data.logo_url}
-          optional
-        />
-        <Field
-          name="ad_photos_url"
-          label="2-3 Photos for Ads"
-          placeholder="Link to photos — crew on a roof, finished installs, your team"
-          defaultValue={data.ad_photos_url}
-          optional
-        />
+
+        {/* Logo upload */}
+        <div>
+          <label className="mb-1 block text-xs font-medium" style={{ color: "#8B95A8" }}>
+            Logo <span className="font-normal" style={{ color: "#4A5568" }}>(optional)</span>
+          </label>
+          {logoUrl ? (
+            <div className="flex items-center gap-3">
+              <img
+                src={logoUrl}
+                alt="Logo"
+                className="h-14 w-14 rounded-lg object-contain"
+                style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)" }}
+              />
+              <button
+                type="button"
+                onClick={() => setLogoUrl("")}
+                className="text-xs underline"
+                style={{ color: "#8B95A8" }}
+              >
+                Remove
+              </button>
+            </div>
+          ) : (
+            <FileDropZone
+              id="logo-upload"
+              accept="image/*"
+              uploading={uploading === "logo"}
+              onChange={handleLogoSelect}
+              label="Drop logo here or tap to upload"
+            />
+          )}
+        </div>
+
+        {/* Ad photos upload */}
+        <div>
+          <label className="mb-1 block text-xs font-medium" style={{ color: "#8B95A8" }}>
+            2–3 Photos for Ads <span className="font-normal" style={{ color: "#4A5568" }}>(optional)</span>
+          </label>
+          <p className="mb-2 text-xs" style={{ color: "#4A5568" }}>
+            Crew on a roof, finished installs, your team — whatever shows off your work.
+          </p>
+          {adPhotoUrls.length > 0 && (
+            <div className="mb-2 flex flex-wrap gap-2">
+              {adPhotoUrls.map((url, i) => (
+                <div key={i} className="relative">
+                  <img
+                    src={url}
+                    alt={`Ad photo ${i + 1}`}
+                    className="h-20 w-20 rounded-lg object-cover"
+                    style={{ border: "1px solid rgba(255,255,255,0.1)" }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setAdPhotoUrls(adPhotoUrls.filter((_, j) => j !== i))}
+                    className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full text-xs font-bold"
+                    style={{ background: "#FF6B6B", color: "#fff" }}
+                  >
+                    &times;
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+          <FileDropZone
+            id="photos-upload"
+            accept="image/*"
+            multiple
+            uploading={uploading === "photos"}
+            onChange={handlePhotosSelect}
+            label="Drop photos here or tap to upload"
+          />
+        </div>
 
         {/* ── Section: Home Address ── */}
         <Divider />
@@ -316,6 +421,49 @@ function SectionHeader({ label }: { label: string }) {
 function Divider() {
   return (
     <hr className="my-2" style={{ border: "none", borderTop: "1px solid rgba(255,255,255,0.06)" }} />
+  );
+}
+
+function FileDropZone({
+  id,
+  accept,
+  multiple,
+  uploading,
+  onChange,
+  label,
+}: {
+  id: string;
+  accept: string;
+  multiple?: boolean;
+  uploading: boolean;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  label: string;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  return (
+    <button
+      type="button"
+      onClick={() => inputRef.current?.click()}
+      disabled={uploading}
+      className="flex w-full items-center justify-center rounded-lg px-4 py-6 text-sm transition-colors"
+      style={{
+        background: "rgba(255,255,255,0.03)",
+        border: "1px dashed rgba(255,255,255,0.15)",
+        color: uploading ? "#F5A623" : "#8B95A8",
+      }}
+    >
+      {uploading ? "Uploading..." : label}
+      <input
+        ref={inputRef}
+        id={id}
+        type="file"
+        accept={accept}
+        multiple={multiple}
+        onChange={onChange}
+        className="hidden"
+      />
+    </button>
   );
 }
 
