@@ -26,10 +26,13 @@ export async function POST(request: NextRequest) {
     contact_phone,
     service_area,
     closer_name,
-    deal_value,
-    pricing_model,
-    ad_spend_agreed,
-    contract_months,
+    offer_type,
+    setup_fee,
+    per_sit_fee,
+    daily_ad_budget,
+    bill_threshold,
+    start_date,
+    term_days,
     notes,
   } = body;
 
@@ -46,20 +49,15 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  if (
-    !closer_name ||
-    !deal_value ||
-    !pricing_model ||
-    !ad_spend_agreed ||
-    !contract_months
-  ) {
+  if (!closer_name || !offer_type || !start_date) {
     return NextResponse.json(
-      { error: "All deal fields are required." },
+      { error: "Closer name, offer type, and start date are required." },
       { status: 400 }
     );
   }
 
-  const token = generateToken();
+  const onboardToken = generateToken();
+  const contractToken = generateToken();
 
   let supabase;
   try {
@@ -80,7 +78,7 @@ export async function POST(request: NextRequest) {
       contact_email,
       contact_phone,
       service_area,
-      onboard_token: token,
+      onboard_token: onboardToken,
       onboard_status: "pending",
       current_step: 1,
       deal_closed_at: new Date().toISOString(),
@@ -108,10 +106,10 @@ export async function POST(request: NextRequest) {
   const { error: dealErr } = await supabase.from("deal_reports").insert({
     client_id: client.id,
     closer_name,
-    deal_value: Number(deal_value),
-    pricing_model,
-    ad_spend_agreed: Number(ad_spend_agreed),
-    contract_months: Number(contract_months),
+    deal_value: Number(setup_fee) + Number(per_sit_fee) * 10, // estimated deal value
+    pricing_model: offer_type,
+    ad_spend_agreed: Number(daily_ad_budget) * Number(term_days),
+    contract_months: Math.ceil(Number(term_days) / 30),
     notes: notes || null,
   });
 
@@ -119,15 +117,39 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: dealErr.message }, { status: 500 });
   }
 
-  // 4. Send onboarding email (non-blocking — don't fail the whole request)
-  const onboardUrl = `${BASE_URL}/onboard/${token}`;
+  // 4. Create contract record
+  const { error: contractErr } = await supabase.from("contracts").insert({
+    client_id: client.id,
+    token: contractToken,
+    offer_type,
+    setup_fee: Number(setup_fee),
+    per_sit_fee: Number(per_sit_fee),
+    daily_ad_budget: Number(daily_ad_budget),
+    bill_threshold: Number(bill_threshold) || 100,
+    start_date,
+    term_days: Number(term_days) || 90,
+    client_business_name: company_name,
+    client_contact_name: contact_name,
+    client_email: contact_email,
+    client_phone: contact_phone,
+    status: "pending",
+    notes: notes || null,
+  });
+
+  if (contractErr) {
+    return NextResponse.json({ error: contractErr.message }, { status: 500 });
+  }
+
+  // 5. Send onboarding email (non-blocking)
+  const onboardUrl = `${BASE_URL}/onboard/${onboardToken}`;
+  const contractUrl = `${BASE_URL}/contract/${contractToken}`;
   let emailSent = false;
   try {
     const emailResult = await sendOnboardingEmail(
       contact_email,
       contact_name,
       company_name,
-      token
+      onboardToken
     );
     emailSent = emailResult.success;
   } catch {
@@ -137,6 +159,7 @@ export async function POST(request: NextRequest) {
   return NextResponse.json({
     success: true,
     onboardUrl,
+    contractUrl,
     emailSent,
   });
 }

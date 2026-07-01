@@ -3,14 +3,15 @@
 import { useState } from "react";
 import type { Client, OnboardingData } from "@/lib/types";
 import StepIndicator from "@/components/onboard/StepIndicator";
+import StepCampaignSetup from "@/components/onboard/StepCampaignSetup";
 import StepWelcome from "@/components/onboard/StepWelcome";
 import StepBusinessInfo from "@/components/onboard/StepBusinessInfo";
 import StepSlack from "@/components/onboard/StepSlack";
-import StepKickoff from "@/components/onboard/StepKickoff";
 import StepFacebook from "@/components/onboard/StepFacebook";
+import StepKickoff from "@/components/onboard/StepKickoff";
 import StepComplete from "@/components/onboard/StepComplete";
 
-const TOTAL_STEPS = 5;
+const TOTAL_STEPS = 6;
 
 export default function OnboardClient({
   client,
@@ -109,23 +110,37 @@ export default function OnboardClient({
         </div>
       )}
 
+      {/* Step 1: Campaign Setup (low-friction, about their outcome) */}
       {step === 1 && (
+        <StepCampaignSetup
+          companyName={client.company_name}
+          data={data}
+          onNext={handleNext}
+          loading={loading}
+        />
+      )}
+      {/* Step 2: Welcome / timeline */}
+      {step === 2 && (
         <StepWelcome
           companyName={client.company_name}
           onNext={() => handleNext({})}
           loading={loading}
         />
       )}
-      {step === 2 && (
+      {/* Step 3: Business info + A2P */}
+      {step === 3 && (
         <StepBusinessInfo data={data} onNext={handleNext} loading={loading} token={token} />
       )}
-      {step === 3 && (
+      {/* Step 4: Slack */}
+      {step === 4 && (
         <StepSlack data={data} onNext={handleNext} loading={loading} />
       )}
-      {step === 4 && (
+      {/* Step 5: Facebook access */}
+      {step === 5 && (
         <StepFacebook data={data} onNext={handleNext} loading={loading} />
       )}
-      {step === 5 && (
+      {/* Step 6: Kickoff call */}
+      {step === 6 && (
         <StepKickoff data={data} onNext={handleNext} loading={loading} />
       )}
     </div>

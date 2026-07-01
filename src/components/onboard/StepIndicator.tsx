@@ -1,15 +1,17 @@
-const TOP_LEVEL_STEPS = ["Payment", "Onboarding", "Success Call"];
+const TOP_LEVEL_STEPS = ["Campaign", "Onboarding", "Success Call"];
 
 function getTopLevelIndex(currentStep: number): number {
-  if (currentStep <= 1) return 0; // Payment
-  if (currentStep <= 4) return 1; // Onboarding (steps 2-4)
-  return 2; // Success Call (step 5)
+  if (currentStep <= 1) return 0; // Campaign setup
+  if (currentStep <= 5) return 1; // Onboarding (steps 2-5)
+  return 2; // Success Call (step 6)
 }
 
 function getSubStep(currentStep: number): number {
-  // Steps 2,3,4 map to sub-steps 1,2,3
+  // Steps 2,3,4,5 map to sub-steps 1,2,3,4
   return currentStep - 1;
 }
+
+const SUB_STEP_COUNT = 4;
 
 export default function StepIndicator({
   currentStep,
@@ -56,10 +58,10 @@ export default function StepIndicator({
         })}
       </div>
 
-      {/* Nested sub-step indicator for Onboarding (steps 2-4) */}
-      {currentStep >= 2 && currentStep <= 4 && (
+      {/* Nested sub-step indicator for Onboarding (steps 2-5) */}
+      {currentStep >= 2 && currentStep <= 5 && (
         <div className="mt-3 flex items-center justify-center gap-2">
-          {[1, 2, 3].map((sub) => {
+          {Array.from({ length: SUB_STEP_COUNT }, (_, i) => i + 1).map((sub) => {
             const activeSub = getSubStep(currentStep);
             const isSubComplete = sub < activeSub;
             const isSubCurrent = sub === activeSub;
@@ -82,7 +84,7 @@ export default function StepIndicator({
             className="ml-1 text-[10px] font-medium"
             style={{ color: "#8B95A8" }}
           >
-            {getSubStep(currentStep)} of 3
+            {getSubStep(currentStep)} of {SUB_STEP_COUNT}
           </span>
         </div>
       )}

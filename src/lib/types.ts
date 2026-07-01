@@ -16,7 +16,17 @@ export interface Client {
 export interface OnboardingData {
   id: string;
   client_id: string;
-  // Step 2 — Business / A2P info
+
+  // Step 1 — Campaign Setup
+  target_zips: string | null;
+  bill_threshold: number | null;
+  appointment_days: string | null;
+  appointment_times: string | null;
+  dealbreaker_tile_roof: boolean;
+  dealbreaker_mobile_home: boolean;
+  dealbreaker_hoa: boolean;
+
+  // Step 3 — Business / A2P info
   business_legal_name: string | null;
   ein: string | null;
   business_address: string | null;
@@ -27,17 +37,21 @@ export interface OnboardingData {
   authorized_rep_title: string | null;
   authorized_rep_phone: string | null;
   authorized_rep_email: string | null;
-  // Step 3 — Slack
+
+  // Step 4 — Slack
   slack_joined: boolean;
-  // Step 4 — Kickoff
-  kickoff_booked: boolean;
-  kickoff_booked_at: string | null;
+
   // Step 5 — Facebook
   fb_connected: boolean;
   fb_ad_account_id: string | null;
   fb_page_name: string | null;
   fb_notes: string | null;
-  // Business info
+
+  // Step 6 — Kickoff
+  kickoff_booked: boolean;
+  kickoff_booked_at: string | null;
+
+  // Business info (collected in step 3)
   company_display_name: string | null;
   target_regions: string | null;
   avg_profit_per_install: string | null;
@@ -50,6 +64,7 @@ export interface OnboardingData {
   home_address: string | null;
   avg_system_size: string | null;
   monthly_install_volume: string | null;
+
   created_at: string;
   updated_at: string;
 }
@@ -64,4 +79,28 @@ export interface DealReport {
   contract_months: number;
   notes: string | null;
   created_at: string;
+}
+
+export interface Contract {
+  id: string;
+  client_id: string;
+  token: string;
+  offer_type: "pay_per_sit" | "foundation";
+  setup_fee: number;
+  per_sit_fee: number;
+  daily_ad_budget: number;
+  bill_threshold: number;
+  start_date: string;
+  term_days: number;
+  client_business_name: string;
+  client_contact_name: string;
+  client_email: string;
+  client_phone: string;
+  signer_name: string | null;
+  signer_ip: string | null;
+  signed_at: string | null;
+  status: "pending" | "signed" | "voided";
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
 }

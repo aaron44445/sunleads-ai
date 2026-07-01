@@ -2,6 +2,25 @@
 
 import { useState } from "react";
 
+const OFFERS = {
+  pay_per_sit: {
+    label: "Pay-Per-Sit",
+    setup_fee: 0,
+    per_sit_fee: 250,
+    daily_ad_budget: 200,
+    term_days: 90,
+  },
+  foundation: {
+    label: "Foundation",
+    setup_fee: 1500,
+    per_sit_fee: 100,
+    daily_ad_budget: 100,
+    term_days: 90,
+  },
+} as const;
+
+type OfferType = keyof typeof OFFERS;
+
 const inputStyle = {
   background: "rgba(255,255,255,0.05)",
   border: "1px solid rgba(255,255,255,0.1)",
@@ -11,12 +30,28 @@ const labelStyle = { color: "#F5A623" };
 
 export default function DealReportClient() {
   const [loading, setLoading] = useState(false);
+  const [offerType, setOfferType] = useState<OfferType>("pay_per_sit");
+  const [setupFee, setSetupFee] = useState<number>(OFFERS.pay_per_sit.setup_fee);
+  const [perSitFee, setPerSitFee] = useState<number>(OFFERS.pay_per_sit.per_sit_fee);
+  const [dailyBudget, setDailyBudget] = useState<number>(OFFERS.pay_per_sit.daily_ad_budget);
+  const [billThreshold, setBillThreshold] = useState<number>(100);
+  const [termDays, setTermDays] = useState<number>(OFFERS.pay_per_sit.term_days);
   const [result, setResult] = useState<{
     success: boolean;
     onboardUrl?: string;
+    contractUrl?: string;
     emailSent?: boolean;
     error?: string;
   } | null>(null);
+
+  function handleOfferChange(type: OfferType) {
+    setOfferType(type);
+    const defaults = OFFERS[type];
+    setSetupFee(defaults.setup_fee);
+    setPerSitFee(defaults.per_sit_fee);
+    setDailyBudget(defaults.daily_ad_budget);
+    setTermDays(defaults.term_days);
+  }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -24,10 +59,18 @@ export default function DealReportClient() {
     setResult(null);
 
     const formData = new FormData(e.currentTarget);
-    const body: Record<string, string> = {};
+    const body: Record<string, unknown> = {};
     formData.forEach((value, key) => {
       body[key] = value as string;
     });
+
+    // Override with state-managed values
+    body.offer_type = offerType;
+    body.setup_fee = setupFee;
+    body.per_sit_fee = perSitFee;
+    body.daily_ad_budget = dailyBudget;
+    body.bill_threshold = billThreshold;
+    body.term_days = termDays;
 
     try {
       const res = await fetch("/api/deal-report", {
@@ -79,34 +122,17 @@ export default function DealReportClient() {
         <p className="mt-2 text-sm" style={{ color: "#8B95A8" }}>
           {result.emailSent
             ? "Onboarding email sent to the client."
-            : "Email failed to send — copy the link below and share manually."}
+            : "Email failed to send — copy the links below and share manually."}
         </p>
-        <div
-          className="mt-4 rounded-lg p-3 text-left"
-          style={{
-            background: "rgba(255,255,255,0.05)",
-            border: "1px solid rgba(255,255,255,0.08)",
-          }}
-        >
-          <p className="mb-1 text-xs font-medium" style={{ color: "#F5A623" }}>
-            Onboarding Link
-          </p>
-          <p
-            className="break-all text-sm font-mono"
-            style={{ color: "#EAEAEA" }}
-          >
-            {result.onboardUrl}
-          </p>
-        </div>
-        <button
-          onClick={() => {
-            navigator.clipboard.writeText(result.onboardUrl || "");
-          }}
-          className="mt-3 rounded-lg px-4 py-2 text-sm font-semibold transition-opacity hover:opacity-80"
-          style={{ background: "rgba(255,255,255,0.08)", color: "#EAEAEA" }}
-        >
-          Copy Link
-        </button>
+
+        {/* Onboarding link */}
+        <LinkBlock label="Onboarding Link" url={result.onboardUrl || ""} />
+
+        {/* Contract link */}
+        {result.contractUrl && (
+          <LinkBlock label="Contract Link" url={result.contractUrl} />
+        )}
+
         <button
           onClick={() => setResult(null)}
           className="mt-4 block w-full text-sm underline"
@@ -159,6 +185,91 @@ export default function DealReportClient() {
         <Field name="service_area" label="Service Area" placeholder="e.g. Tampa Bay, FL" required />
       </fieldset>
 
+      {/* Offer type */}
+      <fieldset className="space-y-4">
+        <legend
+          className="mb-2 text-xs font-semibold uppercase tracking-wider"
+          style={labelStyle}
+        >
+          Offer
+        </legend>
+
+        <div className="grid gap-3 sm:grid-cols-2">
+          {(Object.entries(OFFERS) as [OfferType, (typeof OFFERS)[OfferType]][]).map(
+            ([key, offer]) => {
+              const active = offerType === key;
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => handleOfferChange(key)}
+                  className="rounded-xl p-4 text-left transition-colors"
+                  style={{
+                    background: active
+                      ? "rgba(127,255,0,0.06)"
+                      : "rgba(255,255,255,0.03)",
+                    border: active
+                      ? "1px solid rgba(127,255,0,0.25)"
+                      : "1px solid rgba(255,255,255,0.06)",
+                  }}
+                >
+                  <p
+                    className="text-sm font-bold"
+                    style={{ color: active ? "#7FFF00" : "#EAEAEA" }}
+                  >
+                    {offer.label}
+                  </p>
+                  <p className="mt-1 text-xs" style={{ color: "#8B95A8" }}>
+                    ${offer.setup_fee.toLocaleString()} setup
+                    {" / "}${offer.per_sit_fee}/sit
+                    {" / "}${offer.daily_ad_budget}/day ad spend
+                  </p>
+                </button>
+              );
+            }
+          )}
+        </div>
+
+        {/* Editable deal terms */}
+        <div className="grid gap-4 sm:grid-cols-2">
+          <NumberField
+            label="Setup Fee ($)"
+            value={setupFee}
+            onChange={setSetupFee}
+          />
+          <NumberField
+            label="Per-Sit Fee ($)"
+            value={perSitFee}
+            onChange={setPerSitFee}
+          />
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <NumberField
+            label="Daily Ad Budget ($)"
+            value={dailyBudget}
+            onChange={setDailyBudget}
+          />
+          <NumberField
+            label="Bill Threshold ($)"
+            value={billThreshold}
+            onChange={setBillThreshold}
+          />
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <NumberField
+            label="Term (days)"
+            value={termDays}
+            onChange={setTermDays}
+          />
+          <Field
+            name="start_date"
+            label="Start Date"
+            type="date"
+            required
+          />
+        </div>
+      </fieldset>
+
       {/* Deal details */}
       <fieldset className="space-y-4">
         <legend
@@ -168,21 +279,14 @@ export default function DealReportClient() {
           Deal Details
         </legend>
         <Field name="closer_name" label="Closer Name" required />
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Field name="deal_value" label="Deal Value ($)" type="number" required />
-          <Field name="pricing_model" label="Pricing Model" placeholder="e.g. pay-per-sit" required />
-        </div>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Field name="ad_spend_agreed" label="Ad Spend Agreed ($)" type="number" required />
-          <Field name="contract_months" label="Contract Months" type="number" required />
-        </div>
         <div>
           <label className="mb-1 block text-xs font-medium" style={{ color: "#8B95A8" }}>
-            Notes
+            Notes / Overrides
           </label>
           <textarea
             name="notes"
             rows={3}
+            placeholder="Any deal-specific overrides, custom terms, or context"
             className="w-full rounded-lg px-4 py-3 text-sm text-white outline-none resize-none"
             style={inputStyle}
           />
@@ -198,6 +302,44 @@ export default function DealReportClient() {
         {loading ? "Creating Client..." : "Submit Deal Report"}
       </button>
     </form>
+  );
+}
+
+/* ── Subcomponents ── */
+
+function LinkBlock({ label, url }: { label: string; url: string }) {
+  const [copied, setCopied] = useState(false);
+
+  return (
+    <div
+      className="mt-4 rounded-lg p-3 text-left"
+      style={{
+        background: "rgba(255,255,255,0.05)",
+        border: "1px solid rgba(255,255,255,0.08)",
+      }}
+    >
+      <p className="mb-1 text-xs font-medium" style={{ color: "#F5A623" }}>
+        {label}
+      </p>
+      <p
+        className="break-all text-sm font-mono"
+        style={{ color: "#EAEAEA" }}
+      >
+        {url}
+      </p>
+      <button
+        type="button"
+        onClick={() => {
+          navigator.clipboard.writeText(url);
+          setCopied(true);
+          setTimeout(() => setCopied(false), 2000);
+        }}
+        className="mt-2 rounded-lg px-4 py-2 text-sm font-semibold transition-opacity hover:opacity-80"
+        style={{ background: "rgba(255,255,255,0.08)", color: "#EAEAEA" }}
+      >
+        {copied ? "Copied" : "Copy"}
+      </button>
+    </div>
   );
 }
 
@@ -225,6 +367,31 @@ function Field({
         type={type}
         required={required}
         placeholder={placeholder}
+        className="w-full rounded-lg px-4 py-3 text-sm text-white outline-none"
+        style={inputStyle}
+      />
+    </div>
+  );
+}
+
+function NumberField({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: number;
+  onChange: (v: number) => void;
+}) {
+  return (
+    <div>
+      <label className="mb-1 block text-xs font-medium" style={{ color: "#8B95A8" }}>
+        {label}
+      </label>
+      <input
+        type="number"
+        value={value}
+        onChange={(e) => onChange(Number(e.target.value))}
         className="w-full rounded-lg px-4 py-3 text-sm text-white outline-none"
         style={inputStyle}
       />
