@@ -141,19 +141,43 @@ export default function StepFacebook({
   data,
   onNext,
   loading,
+  variant = "company_owner",
 }: {
   data: OnboardingData;
   onNext: (data: Record<string, unknown>) => void;
   loading: boolean;
+  variant?: "company_owner" | "individual_closer";
 }) {
+  const isIndividual = variant === "individual_closer";
   const [connected, setConnected] = useState(data.fb_connected ?? false);
   const [notes, setNotes] = useState(data.fb_notes ?? "");
   const [expandedStep, setExpandedStep] = useState<number | null>(null);
+  const [fbAccess, setFbAccess] = useState<"has_admin" | "needs_new_page" | null>(
+    data.fb_page_access ?? null
+  );
+  const [desiredPageName, setDesiredPageName] = useState<string>(
+    data.desired_page_name ?? ""
+  );
+
+  const needsNewPage = isIndividual && fbAccess === "needs_new_page";
+  const showInviteFlow = !isIndividual || fbAccess === "has_admin";
+
+  const canSubmit = isIndividual
+    ? fbAccess === "has_admin"
+      ? connected
+      : fbAccess === "needs_new_page"
+        ? desiredPageName.trim().length > 0 && connected
+        : false
+    : connected;
 
   function handleSubmit() {
     onNext({
       fb_connected: connected,
       fb_notes: notes || null,
+      ...(isIndividual && {
+        fb_page_access: fbAccess,
+        desired_page_name: needsNewPage ? desiredPageName.trim() : null,
+      }),
     });
   }
 
@@ -167,11 +191,100 @@ export default function StepFacebook({
           Connect Facebook
         </h2>
         <p className="mt-1 text-sm" style={{ color: "#8B95A8" }}>
-          We need access to your Meta Business Suite so we can run ads on your
-          behalf. Follow the steps below to invite us.
+          {isIndividual
+            ? "Choose how we'll run your ads. Two options below."
+            : "We need access to your Meta Business Suite so we can run ads on your behalf. Follow the steps below to invite us."}
         </p>
       </div>
 
+      {isIndividual && (
+        <div className="mb-6 grid gap-3 sm:grid-cols-2">
+          {[
+            {
+              key: "has_admin" as const,
+              title: "I have admin access to the company Page",
+              blurb:
+                "You'll invite us into the company's existing Meta Business Suite.",
+            },
+            {
+              key: "needs_new_page" as const,
+              title: "I need a new Page built under my name",
+              blurb:
+                "We'll spin up a personal-brand Page and ad account for you.",
+            },
+          ].map((opt) => {
+            const active = fbAccess === opt.key;
+            return (
+              <button
+                key={opt.key}
+                type="button"
+                onClick={() => setFbAccess(opt.key)}
+                className="rounded-xl p-4 text-left transition-colors"
+                style={{
+                  background: active
+                    ? "rgba(127,255,0,0.06)"
+                    : "rgba(255,255,255,0.03)",
+                  border: active
+                    ? "1px solid rgba(127,255,0,0.25)"
+                    : "1px solid rgba(255,255,255,0.06)",
+                }}
+              >
+                <p
+                  className="text-sm font-bold"
+                  style={{ color: active ? "#7FFF00" : "#EAEAEA" }}
+                >
+                  {opt.title}
+                </p>
+                <p className="mt-1 text-xs" style={{ color: "#8B95A8" }}>
+                  {opt.blurb}
+                </p>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {needsNewPage && (
+        <div
+          className="mb-6 rounded-lg p-4"
+          style={{
+            background: "rgba(127,255,0,0.04)",
+            border: "1px solid rgba(127,255,0,0.15)",
+          }}
+        >
+          <p
+            className="mb-2 text-xs font-semibold uppercase tracking-wider"
+            style={{ color: "#7FFF00" }}
+          >
+            We'll build the Page
+          </p>
+          <p className="mb-4 text-sm" style={{ color: "#EAEAEA" }}>
+            Give us the desired Page name / handle. We'll set up the Meta
+            Business Suite under your name and hand back full admin access
+            before we launch.
+          </p>
+          <label className="mb-1 block text-xs font-medium" style={{ color: "#8B95A8" }}>
+            Desired Page name / handle <span style={{ color: "#FF6B6B" }}>*</span>
+          </label>
+          <input
+            type="text"
+            value={desiredPageName}
+            onChange={(e) => setDesiredPageName(e.target.value)}
+            placeholder="e.g. Nick Nascimento Solar"
+            className="w-full rounded-lg px-4 py-3 text-sm text-white outline-none"
+            style={inputStyle}
+          />
+        </div>
+      )}
+
+      {isIndividual && !fbAccess && (
+        <p className="mb-6 text-xs" style={{ color: "#8B95A8" }}>
+          Pick one of the two options above to continue.
+        </p>
+      )}
+
+      {showInviteFlow && (
+      <>
       {/* Prerequisites */}
       <div
         className="mb-6 rounded-lg p-4"
@@ -319,6 +432,8 @@ export default function StepFacebook({
           </div>
         ))}
       </div>
+      </>
+      )}
 
       {/* Notes */}
       <div className="mb-4">
@@ -358,13 +473,17 @@ export default function StepFacebook({
           className="mt-0.5 h-4 w-4 rounded accent-green-400"
         />
         <span className="text-sm" style={{ color: "#EAEAEA" }}>
-          I&apos;ve sent the invite to <CopyEmail />
+          {needsNewPage ? (
+            <>Locked in — I&apos;m ready for Aaron to build the Page.</>
+          ) : (
+            <>I&apos;ve sent the invite to <CopyEmail /></>
+          )}
         </span>
       </label>
 
       <button
         onClick={handleSubmit}
-        disabled={!connected || loading}
+        disabled={!canSubmit || loading}
         className="mt-6 w-full rounded-lg px-6 py-3.5 text-sm font-bold transition-opacity disabled:opacity-50"
         style={{ background: "#7FFF00", color: "#080B10" }}
       >

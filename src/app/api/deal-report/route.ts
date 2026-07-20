@@ -34,7 +34,14 @@ export async function POST(request: NextRequest) {
     start_date,
     term_days,
     notes,
+    pif_amount,
+    sit_count,
+    client_type: rawClientType,
+    start_date_deferred,
   } = body;
+
+  const client_type =
+    rawClientType === "individual_closer" ? "individual_closer" : "company_owner";
 
   if (
     !company_name ||
@@ -54,6 +61,31 @@ export async function POST(request: NextRequest) {
       { error: "Closer name, offer type, and start date are required." },
       { status: 400 }
     );
+  }
+
+  const isPif = offer_type === "pif";
+  if (isPif) {
+    const pifAmountNum = Number(pif_amount);
+    const sitCountNum = Number(sit_count);
+    const dailyBudgetNum = Number(daily_ad_budget);
+    if (!Number.isFinite(pifAmountNum) || pifAmountNum < 4000) {
+      return NextResponse.json(
+        { error: "PIF amount must be at least $4,000." },
+        { status: 400 }
+      );
+    }
+    if (!Number.isFinite(sitCountNum) || sitCountNum < 1) {
+      return NextResponse.json(
+        { error: "Sit count must be at least 1." },
+        { status: 400 }
+      );
+    }
+    if (!Number.isFinite(dailyBudgetNum) || dailyBudgetNum < 50) {
+      return NextResponse.json(
+        { error: "Daily ad budget must be at least $50 for PIF." },
+        { status: 400 }
+      );
+    }
   }
 
   const onboardToken = generateToken();
@@ -81,6 +113,7 @@ export async function POST(request: NextRequest) {
       onboard_token: onboardToken,
       onboard_status: "pending",
       current_step: 1,
+      client_type,
       deal_closed_at: new Date().toISOString(),
     })
     .select("id")
@@ -103,10 +136,13 @@ export async function POST(request: NextRequest) {
   }
 
   // 3. Create deal report
+  const dealValue = isPif
+    ? Number(pif_amount)
+    : Number(setup_fee) + Number(per_sit_fee) * 10; // estimated for pay-per-sit / foundation
   const { error: dealErr } = await supabase.from("deal_reports").insert({
     client_id: client.id,
     closer_name,
-    deal_value: Number(setup_fee) + Number(per_sit_fee) * 10, // estimated deal value
+    deal_value: dealValue,
     pricing_model: offer_type,
     ad_spend_agreed: Number(daily_ad_budget) * Number(term_days),
     contract_months: Math.ceil(Number(term_days) / 30),
@@ -122,8 +158,8 @@ export async function POST(request: NextRequest) {
     client_id: client.id,
     token: contractToken,
     offer_type,
-    setup_fee: Number(setup_fee),
-    per_sit_fee: Number(per_sit_fee),
+    setup_fee: isPif ? Number(pif_amount) : Number(setup_fee),
+    per_sit_fee: isPif ? 0 : Number(per_sit_fee),
     daily_ad_budget: Number(daily_ad_budget),
     bill_threshold: Number(bill_threshold) || 100,
     start_date,
@@ -134,6 +170,10 @@ export async function POST(request: NextRequest) {
     client_phone: contact_phone,
     status: "pending",
     notes: notes || null,
+    pif_amount: isPif ? Number(pif_amount) : null,
+    sit_count: isPif ? Number(sit_count) : null,
+    client_type,
+    start_date_deferred: Boolean(start_date_deferred),
   });
 
   if (contractErr) {

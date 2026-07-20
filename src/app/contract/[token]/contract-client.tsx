@@ -48,7 +48,21 @@ export default function ContractClient({
     d.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
 
   const isPayPerSit = contract.offer_type === "pay_per_sit";
-  const offerLabel = isPayPerSit ? "Pay-Per-Sit" : "Foundation";
+  const isPif = contract.offer_type === "pif";
+  const isFreeTrial = contract.offer_type === "free_trial";
+  const isIndividual = contract.client_type === "individual_closer";
+  const isDeferredStart = contract.start_date_deferred;
+  const offerLabel = isFreeTrial
+    ? "Free Trial"
+    : isPif
+    ? "Paid In Full"
+    : isPayPerSit
+    ? "Pay-Per-Sit"
+    : "Foundation";
+  const pifAmount = contract.pif_amount ?? contract.setup_fee;
+  const sitCount = contract.sit_count ?? 0;
+  const pifEffectivePerSit =
+    isPif && sitCount > 0 ? Math.round(pifAmount / sitCount) : 0;
 
   return (
     <div
@@ -68,11 +82,23 @@ export default function ContractClient({
             className="mt-2 text-2xl font-bold text-white sm:text-3xl"
             style={{ letterSpacing: "-0.5px" }}
           >
-            SunLeads AI &times; {contract.client_business_name}
+            SunLeads AI &times;{" "}
+            {isIndividual
+              ? contract.client_contact_name
+              : contract.client_business_name}
           </h1>
           <p className="mt-1 text-sm" style={{ color: "#8B95A8" }}>
-            {offerLabel} Agreement &mdash; {formatDate(startDate)}
+            {offerLabel} Agreement &mdash;{" "}
+            {isDeferredStart ? "Start TBD" : formatDate(startDate)}
           </p>
+          {isIndividual && (
+            <p
+              className="mt-1 text-xs font-semibold uppercase tracking-widest"
+              style={{ color: "#F5A623" }}
+            >
+              Individual Closer Agreement
+            </p>
+          )}
         </div>
 
         {/* Contract body */}
@@ -88,17 +114,39 @@ export default function ContractClient({
             <Section title="1. Parties">
               <p>
                 This Service Agreement (&ldquo;Agreement&rdquo;) is entered into
-                as of <Strong>{formatDate(startDate)}</Strong> by and between:
+                as of{" "}
+                {isDeferredStart ? (
+                  <Strong>
+                    the date all required Client permissions and information
+                    are provided (see Section 7)
+                  </Strong>
+                ) : (
+                  <Strong>{formatDate(startDate)}</Strong>
+                )}{" "}
+                by and between:
               </p>
               <p>
                 <Strong>SunLeads AI</Strong> (&ldquo;Agency&rdquo;), a digital
                 marketing agency specializing in solar lead generation, and
               </p>
-              <p>
-                <Strong>{contract.client_business_name}</Strong> (&ldquo;Client&rdquo;),
-                represented by {contract.client_contact_name},{" "}
-                contactable at {contract.client_email} and {contract.client_phone}.
-              </p>
+              {isIndividual ? (
+                <p>
+                  <Strong>{contract.client_contact_name}</Strong> (&ldquo;Client&rdquo;),
+                  an individual solar closer producing appointments under the
+                  brand of{" "}
+                  <Strong>{contract.client_business_name}</Strong>, contactable
+                  at {contract.client_email} and {contract.client_phone}. The
+                  Agency&apos;s obligations under this Agreement run to Client
+                  personally, not to{" "}
+                  <Strong>{contract.client_business_name}</Strong>.
+                </p>
+              ) : (
+                <p>
+                  <Strong>{contract.client_business_name}</Strong> (&ldquo;Client&rdquo;),
+                  represented by {contract.client_contact_name},{" "}
+                  contactable at {contract.client_email} and {contract.client_phone}.
+                </p>
+              )}
             </Section>
 
             <Section title="2. Services">
@@ -124,15 +172,59 @@ export default function ContractClient({
               >
                 <div className="grid gap-3 sm:grid-cols-2">
                   <TermLine label="Offer" value={offerLabel} />
-                  <TermLine label="Setup Fee" value={`$${contract.setup_fee.toLocaleString()}`} />
-                  <TermLine label="Per Qualified Sit" value={`$${contract.per_sit_fee}`} />
+                  {isPif ? (
+                    <>
+                      <TermLine label="PIF Amount" value={`$${pifAmount.toLocaleString()}`} />
+                      <TermLine label="Sits Included" value={`${sitCount}`} />
+                    </>
+                  ) : isFreeTrial ? (
+                    <TermLine label="Setup Fee" value="$0 (no upfront)" />
+                  ) : (
+                    <>
+                      <TermLine label="Setup Fee" value={`$${contract.setup_fee.toLocaleString()}`} />
+                      <TermLine label="Per Qualified Sit" value={`$${contract.per_sit_fee}`} />
+                    </>
+                  )}
                   <TermLine label="Daily Ad Budget" value={`$${contract.daily_ad_budget}/day`} />
                   <TermLine label="Term" value={`${contract.term_days} days`} />
                   <TermLine label="Bill Threshold" value={`$${contract.bill_threshold}+/mo`} />
                 </div>
               </div>
 
-              {isPayPerSit ? (
+              {isFreeTrial ? (
+                <p className="mt-3" style={{ color: "#8B95A8" }}>
+                  This is a no-cost <Strong>3-week trial</Strong>. Client
+                  pays <Strong>$0</Strong> to Agency during the trial period.
+                  Client funds ad spend directly in{" "}
+                  {isIndividual
+                    ? "their personal Meta ad account"
+                    : "their own Meta ad account"}{" "}
+                  at <Strong>${contract.daily_ad_budget}/day</Strong>. At the
+                  end of the trial, Client and Agency negotiate a paid
+                  engagement to continue services.
+                </p>
+              ) : isPif ? (
+                <p className="mt-3" style={{ color: "#8B95A8" }}>
+                  One-time payment of <Strong>${pifAmount.toLocaleString()}</Strong>,
+                  collected on the closing call. Agency will deliver{" "}
+                  <Strong>{sitCount} qualified sits</Strong> over the term. Client
+                  funds ad spend directly in{" "}
+                  {isIndividual
+                    ? "their personal Meta ad account"
+                    : "their own Meta ad account"}
+                  {" "}at a minimum
+                  of <Strong>$50/day</Strong>
+                  {contract.daily_ad_budget > 50 ? (
+                    <>
+                      {" "}
+                      (agreed budget:{" "}
+                      <Strong>${contract.daily_ad_budget}/day</Strong>)
+                    </>
+                  ) : null}
+                  . Effective cost per sit at agreed volume:{" "}
+                  <Strong>${pifEffectivePerSit.toLocaleString()}</Strong>.
+                </p>
+              ) : isPayPerSit ? (
                 <p className="mt-3" style={{ color: "#8B95A8" }}>
                   No setup fee. Client pays <Strong>${contract.per_sit_fee}</Strong> per
                   qualified sit delivered. Ad spend is funded by the Client in their own
@@ -169,7 +261,40 @@ export default function ContractClient({
             </Section>
 
             <Section title="5. Guarantee">
-              {isPayPerSit ? (
+              {isIndividual && (
+                <p className="mb-2">
+                  All sits are booked <Strong>for Client personally</Strong>{" "}
+                  under the {contract.client_business_name} brand. Sits routed
+                  to any other person&apos;s calendar do not count against this
+                  guarantee.
+                </p>
+              )}
+              {isFreeTrial ? (
+                <>
+                  <p>
+                    Any qualified sit not delivered during the trial will
+                    be <Strong>replaced at no charge</Strong>.
+                  </p>
+                  <p className="mt-2">
+                    If the trial ends without a paid engagement, both parties
+                    walk with <Strong>no further obligation</Strong>.
+                  </p>
+                </>
+              ) : isPif ? (
+                <>
+                  <p>
+                    Any sit that is not qualified per the definition above, or where
+                    the lead does not show, will be <Strong>replaced at no charge</Strong>.
+                  </p>
+                  <p className="mt-2">
+                    If Agency fails to deliver the full{" "}
+                    <Strong>{sitCount} qualified sits</Strong> within the{" "}
+                    <Strong>{contract.term_days}-day</Strong> term, the term will
+                    be <Strong>extended at no additional cost</Strong> until all
+                    promised sits are delivered.
+                  </p>
+                </>
+              ) : isPayPerSit ? (
                 <p>
                   Any sit that is not qualified per the definition above, or where
                   the lead does not show, will be <Strong>replaced at no charge</Strong>.
@@ -190,20 +315,51 @@ export default function ContractClient({
             </Section>
 
             <Section title="6. Ad Spend">
-              <p>
-                Client funds all ad spend directly in their own Meta ad account.
-                Agency does not handle or hold ad spend funds. The recommended
-                daily budget is <Strong>${contract.daily_ad_budget}/day</Strong>.
-                Client may adjust budget after consulting with Agency.
-              </p>
+              {isPif ? (
+                <p>
+                  Client funds all ad spend directly in{" "}
+                  {isIndividual
+                    ? "their personal Meta ad account"
+                    : "their own Meta ad account"}
+                  . Agency does not handle or hold ad spend funds. The{" "}
+                  <Strong>minimum daily budget is $50/day</Strong>; agreed budget for
+                  this engagement is <Strong>${contract.daily_ad_budget}/day</Strong>.
+                  Client may raise the budget at any time but must not drop below
+                  $50/day for the duration of the term.
+                </p>
+              ) : (
+                <p>
+                  Client funds all ad spend directly in{" "}
+                  {isIndividual
+                    ? "their personal Meta ad account"
+                    : "their own Meta ad account"}
+                  . Agency does not handle or hold ad spend funds. The recommended
+                  daily budget is <Strong>${contract.daily_ad_budget}/day</Strong>.
+                  Client may adjust budget after consulting with Agency.
+                </p>
+              )}
             </Section>
 
             <Section title="7. Term &amp; Termination">
-              <p>
-                This Agreement begins on <Strong>{formatDate(startDate)}</Strong> and
-                runs for <Strong>{contract.term_days} days</Strong>, ending
-                on <Strong>{formatDate(endDate)}</Strong>.
-              </p>
+              {isDeferredStart ? (
+                <p>
+                  This Agreement begins{" "}
+                  <Strong>
+                    7&ndash;10 business days after Client provides all required
+                    permissions and information
+                  </Strong>{" "}
+                  (Meta ad account access, Facebook Page access, personal
+                  payment method, and campaign parameters as defined in the
+                  SunLeads onboarding). Once started, it runs for{" "}
+                  <Strong>{contract.term_days} days</Strong> from that date.
+                </p>
+              ) : (
+                <p>
+                  This Agreement begins on <Strong>{formatDate(startDate)}</Strong> and
+                  runs for <Strong>{contract.term_days} days</Strong>, ending
+                  on <Strong>{formatDate(endDate)}</Strong>.
+                </p>
+              )}
               <p className="mt-2">
                 Either party may terminate with 14 days written notice. Upon
                 termination, Client retains full ownership of their ad account,

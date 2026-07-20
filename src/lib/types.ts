@@ -8,6 +8,7 @@ export interface Client {
   onboard_token: string;
   onboard_status: "pending" | "in_progress" | "completed";
   current_step: number;
+  client_type: "company_owner" | "individual_closer";
   deal_closed_at: string;
   created_at: string;
   updated_at: string;
@@ -46,6 +47,12 @@ export interface OnboardingData {
   fb_ad_account_id: string | null;
   fb_page_name: string | null;
   fb_notes: string | null;
+  fb_page_access: "has_admin" | "needs_new_page" | null;
+  desired_page_name: string | null;
+
+  // Individual Self-Gen variant (Step 3)
+  owner_approval_confirmed: boolean;
+  personal_payment_method: string | null;
 
   // Step 6 — Kickoff
   kickoff_booked: boolean;
@@ -85,11 +92,15 @@ export interface Contract {
   id: string;
   client_id: string;
   token: string;
-  offer_type: "pay_per_sit" | "foundation";
+  offer_type: "pay_per_sit" | "foundation" | "pif" | "free_trial";
+  client_type: "company_owner" | "individual_closer";
+  start_date_deferred: boolean;
   setup_fee: number;
   per_sit_fee: number;
   daily_ad_budget: number;
   bill_threshold: number;
+  pif_amount: number | null;
+  sit_count: number | null;
   start_date: string;
   term_days: number;
   client_business_name: string;

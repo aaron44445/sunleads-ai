@@ -17,9 +17,27 @@ const OFFERS = {
     daily_ad_budget: 100,
     term_days: 90,
   },
+  pif: {
+    label: "Paid In Full",
+    setup_fee: 4000,
+    per_sit_fee: 0,
+    daily_ad_budget: 50,
+    term_days: 90,
+  },
+  free_trial: {
+    label: "Free Trial",
+    setup_fee: 0,
+    per_sit_fee: 0,
+    daily_ad_budget: 40,
+    term_days: 21,
+  },
 } as const;
 
 type OfferType = keyof typeof OFFERS;
+
+const PIF_DEFAULTS = { amount: 4000, sits: 15 };
+const PIF_MIN_AMOUNT = 4000;
+const PIF_MIN_DAILY_BUDGET = 50;
 
 const inputStyle = {
   background: "rgba(255,255,255,0.05)",
@@ -28,14 +46,35 @@ const inputStyle = {
 
 const labelStyle = { color: "#F5A623" };
 
+type ClientType = "company_owner" | "individual_closer";
+
+const CLIENT_TYPES: Record<ClientType, { label: string; blurb: string }> = {
+  company_owner: {
+    label: "Company Owner",
+    blurb: "Standard install co. owner-operator. Business entity + EIN.",
+  },
+  individual_closer: {
+    label: "Individual Self-Gen",
+    blurb: "Solo closer producing under a company he doesn't own.",
+  },
+};
+
 export default function DealReportClient() {
   const [loading, setLoading] = useState(false);
+  const [clientType, setClientType] = useState<ClientType>("company_owner");
   const [offerType, setOfferType] = useState<OfferType>("pay_per_sit");
   const [setupFee, setSetupFee] = useState<number>(OFFERS.pay_per_sit.setup_fee);
   const [perSitFee, setPerSitFee] = useState<number>(OFFERS.pay_per_sit.per_sit_fee);
   const [dailyBudget, setDailyBudget] = useState<number>(OFFERS.pay_per_sit.daily_ad_budget);
   const [billThreshold, setBillThreshold] = useState<number>(100);
   const [termDays, setTermDays] = useState<number>(OFFERS.pay_per_sit.term_days);
+  const [pifAmount, setPifAmount] = useState<number>(PIF_DEFAULTS.amount);
+  const [sitCount, setSitCount] = useState<number>(PIF_DEFAULTS.sits);
+  const [startDateDeferred, setStartDateDeferred] = useState<boolean>(false);
+
+  const isPif = offerType === "pif";
+  const effectivePerSit =
+    isPif && sitCount > 0 ? Math.round(pifAmount / sitCount) : 0;
   const [result, setResult] = useState<{
     success: boolean;
     onboardUrl?: string;
@@ -51,6 +90,10 @@ export default function DealReportClient() {
     setPerSitFee(defaults.per_sit_fee);
     setDailyBudget(defaults.daily_ad_budget);
     setTermDays(defaults.term_days);
+    if (type === "pif") {
+      setPifAmount(PIF_DEFAULTS.amount);
+      setSitCount(PIF_DEFAULTS.sits);
+    }
   }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -65,12 +108,18 @@ export default function DealReportClient() {
     });
 
     // Override with state-managed values
+    body.client_type = clientType;
     body.offer_type = offerType;
-    body.setup_fee = setupFee;
-    body.per_sit_fee = perSitFee;
+    body.setup_fee = isPif ? pifAmount : setupFee;
+    body.per_sit_fee = isPif ? 0 : perSitFee;
     body.daily_ad_budget = dailyBudget;
     body.bill_threshold = billThreshold;
     body.term_days = termDays;
+    if (isPif) {
+      body.pif_amount = pifAmount;
+      body.sit_count = sitCount;
+    }
+    body.start_date_deferred = startDateDeferred;
 
     try {
       const res = await fetch("/api/deal-report", {
@@ -125,6 +174,26 @@ export default function DealReportClient() {
             : "Email failed to send — copy the links below and share manually."}
         </p>
 
+        {clientType === "individual_closer" && (
+          <div
+            className="mt-4 rounded-lg p-3 text-left text-xs"
+            style={{
+              background: "rgba(245,166,35,0.08)",
+              border: "1px solid rgba(245,166,35,0.25)",
+              color: "#F5A623",
+            }}
+          >
+            <p className="font-semibold uppercase tracking-wider">
+              GHL routing
+            </p>
+            <p className="mt-1" style={{ color: "#EAEAEA" }}>
+              Tag this contact <span className="font-mono">individual-self-gen</span>{" "}
+              and route into the Individual Self-Gen pipeline / calendar in GHL.
+              Not automated — do it now.
+            </p>
+          </div>
+        )}
+
         {/* Onboarding link */}
         <LinkBlock label="Onboarding Link" url={result.onboardUrl || ""} />
 
@@ -166,6 +235,49 @@ export default function DealReportClient() {
         </div>
       )}
 
+      {/* Client type */}
+      <fieldset className="space-y-3">
+        <legend
+          className="mb-2 text-xs font-semibold uppercase tracking-wider"
+          style={labelStyle}
+        >
+          Client Type
+        </legend>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {(Object.entries(CLIENT_TYPES) as [ClientType, (typeof CLIENT_TYPES)[ClientType]][]).map(
+            ([key, meta]) => {
+              const active = clientType === key;
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => setClientType(key)}
+                  className="rounded-xl p-4 text-left transition-colors"
+                  style={{
+                    background: active
+                      ? "rgba(127,255,0,0.06)"
+                      : "rgba(255,255,255,0.03)",
+                    border: active
+                      ? "1px solid rgba(127,255,0,0.25)"
+                      : "1px solid rgba(255,255,255,0.06)",
+                  }}
+                >
+                  <p
+                    className="text-sm font-bold"
+                    style={{ color: active ? "#7FFF00" : "#EAEAEA" }}
+                  >
+                    {meta.label}
+                  </p>
+                  <p className="mt-1 text-xs" style={{ color: "#8B95A8" }}>
+                    {meta.blurb}
+                  </p>
+                </button>
+              );
+            }
+          )}
+        </div>
+      </fieldset>
+
       {/* Client info */}
       <fieldset className="space-y-4">
         <legend
@@ -175,12 +287,42 @@ export default function DealReportClient() {
           Client Info
         </legend>
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field name="company_name" label="Company Name" required />
-          <Field name="contact_name" label="Contact Name" required />
+          <Field
+            name="company_name"
+            label={
+              clientType === "individual_closer"
+                ? "Company He's Closing Under"
+                : "Company Name"
+            }
+            required
+          />
+          <Field
+            name="contact_name"
+            label={
+              clientType === "individual_closer"
+                ? "His Legal Name (Meta ID)"
+                : "Contact Name"
+            }
+            required
+          />
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field name="contact_email" label="Email" type="email" required />
-          <Field name="contact_phone" label="Phone" type="tel" required />
+          <Field
+            name="contact_email"
+            label={
+              clientType === "individual_closer" ? "Personal Email" : "Email"
+            }
+            type="email"
+            required
+          />
+          <Field
+            name="contact_phone"
+            label={
+              clientType === "individual_closer" ? "Personal Phone" : "Phone"
+            }
+            type="tel"
+            required
+          />
         </div>
         <Field name="service_area" label="Service Area" placeholder="e.g. Tampa Bay, FL" required />
       </fieldset>
@@ -220,9 +362,24 @@ export default function DealReportClient() {
                     {offer.label}
                   </p>
                   <p className="mt-1 text-xs" style={{ color: "#8B95A8" }}>
-                    ${offer.setup_fee.toLocaleString()} setup
-                    {" / "}${offer.per_sit_fee}/sit
-                    {" / "}${offer.daily_ad_budget}/day ad spend
+                    {key === "pif" ? (
+                      <>
+                        ${offer.setup_fee.toLocaleString()} PIF
+                        {" / "}${offer.daily_ad_budget}/day ad spend
+                      </>
+                    ) : key === "free_trial" ? (
+                      <>
+                        $0 upfront
+                        {" / "}3-week trial
+                        {" / "}${offer.daily_ad_budget}/day ad spend
+                      </>
+                    ) : (
+                      <>
+                        ${offer.setup_fee.toLocaleString()} setup
+                        {" / "}${offer.per_sit_fee}/sit
+                        {" / "}${offer.daily_ad_budget}/day ad spend
+                      </>
+                    )}
                   </p>
                 </button>
               );
@@ -231,23 +388,57 @@ export default function DealReportClient() {
         </div>
 
         {/* Editable deal terms */}
+        {isPif ? (
+          <>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <NumberField
+                label="PIF Amount ($)"
+                value={pifAmount}
+                onChange={setPifAmount}
+                min={PIF_MIN_AMOUNT}
+              />
+              <NumberField
+                label="Sits Included"
+                value={sitCount}
+                onChange={setSitCount}
+                min={1}
+              />
+            </div>
+            <div
+              className="rounded-lg px-4 py-3 text-xs"
+              style={{
+                background: "rgba(127,255,0,0.04)",
+                border: "1px solid rgba(127,255,0,0.15)",
+                color: "#8B95A8",
+              }}
+            >
+              Effective{" "}
+              <span className="font-semibold text-white">
+                ${effectivePerSit.toLocaleString()}/sit
+              </span>{" "}
+              — for internal reference only, not shown to client.
+            </div>
+          </>
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-2">
+            <NumberField
+              label="Setup Fee ($)"
+              value={setupFee}
+              onChange={setSetupFee}
+            />
+            <NumberField
+              label="Per-Sit Fee ($)"
+              value={perSitFee}
+              onChange={setPerSitFee}
+            />
+          </div>
+        )}
         <div className="grid gap-4 sm:grid-cols-2">
           <NumberField
-            label="Setup Fee ($)"
-            value={setupFee}
-            onChange={setSetupFee}
-          />
-          <NumberField
-            label="Per-Sit Fee ($)"
-            value={perSitFee}
-            onChange={setPerSitFee}
-          />
-        </div>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <NumberField
-            label="Daily Ad Budget ($)"
+            label={isPif ? "Daily Ad Budget ($, min $50)" : "Daily Ad Budget ($)"}
             value={dailyBudget}
             onChange={setDailyBudget}
+            min={isPif ? PIF_MIN_DAILY_BUDGET : undefined}
           />
           <NumberField
             label="Bill Threshold ($)"
@@ -263,11 +454,38 @@ export default function DealReportClient() {
           />
           <Field
             name="start_date"
-            label="Start Date"
+            label={
+              startDateDeferred
+                ? "Start Date (internal placeholder — hidden from client)"
+                : "Start Date"
+            }
             type="date"
             required
           />
         </div>
+        <label
+          className="flex cursor-pointer items-start gap-3 rounded-lg p-3"
+          style={{
+            background: startDateDeferred
+              ? "rgba(245,166,35,0.06)"
+              : "rgba(255,255,255,0.03)",
+            border: startDateDeferred
+              ? "1px solid rgba(245,166,35,0.25)"
+              : "1px solid rgba(255,255,255,0.06)",
+          }}
+        >
+          <input
+            type="checkbox"
+            checked={startDateDeferred}
+            onChange={(e) => setStartDateDeferred(e.target.checked)}
+            className="mt-0.5 h-4 w-4 rounded accent-orange-400"
+          />
+          <span className="text-xs" style={{ color: "#EAEAEA" }}>
+            <strong className="text-white">Start date TBD</strong> — client
+            hasn&apos;t provided access yet. Contract copy will say &ldquo;7&ndash;10
+            business days after Client provides required permissions.&rdquo;
+          </span>
+        </label>
       </fieldset>
 
       {/* Deal details */}
@@ -378,10 +596,12 @@ function NumberField({
   label,
   value,
   onChange,
+  min,
 }: {
   label: string;
   value: number;
   onChange: (v: number) => void;
+  min?: number;
 }) {
   return (
     <div>
@@ -391,6 +611,7 @@ function NumberField({
       <input
         type="number"
         value={value}
+        min={min}
         onChange={(e) => onChange(Number(e.target.value))}
         className="w-full rounded-lg px-4 py-3 text-sm text-white outline-none"
         style={inputStyle}

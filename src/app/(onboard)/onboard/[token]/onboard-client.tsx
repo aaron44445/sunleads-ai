@@ -6,6 +6,7 @@ import StepIndicator from "@/components/onboard/StepIndicator";
 import StepCampaignSetup from "@/components/onboard/StepCampaignSetup";
 import StepWelcome from "@/components/onboard/StepWelcome";
 import StepBusinessInfo from "@/components/onboard/StepBusinessInfo";
+import StepIndividualInfo from "@/components/onboard/StepIndividualInfo";
 import StepSlack from "@/components/onboard/StepSlack";
 import StepFacebook from "@/components/onboard/StepFacebook";
 import StepKickoff from "@/components/onboard/StepKickoff";
@@ -26,6 +27,8 @@ export default function OnboardClient({
   const [data, setData] = useState(onboardingData);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  const isIndividual = client.client_type === "individual_closer";
 
   const completed =
     client.onboard_status === "completed" || step > TOTAL_STEPS;
@@ -127,17 +130,31 @@ export default function OnboardClient({
           loading={loading}
         />
       )}
-      {/* Step 3: Business info + A2P */}
-      {step === 3 && (
-        <StepBusinessInfo data={data} onNext={handleNext} loading={loading} token={token} />
-      )}
+      {/* Step 3: Business info + A2P (or Individual identity for self-gen variant) */}
+      {step === 3 &&
+        (isIndividual ? (
+          <StepIndividualInfo
+            client={client}
+            data={data}
+            onNext={handleNext}
+            loading={loading}
+            token={token}
+          />
+        ) : (
+          <StepBusinessInfo data={data} onNext={handleNext} loading={loading} token={token} />
+        ))}
       {/* Step 4: Slack */}
       {step === 4 && (
         <StepSlack data={data} onNext={handleNext} loading={loading} />
       )}
       {/* Step 5: Facebook access */}
       {step === 5 && (
-        <StepFacebook data={data} onNext={handleNext} loading={loading} />
+        <StepFacebook
+          data={data}
+          onNext={handleNext}
+          loading={loading}
+          variant={client.client_type}
+        />
       )}
       {/* Step 6: Kickoff call */}
       {step === 6 && (
