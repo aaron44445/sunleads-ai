@@ -8,36 +8,6 @@ import GlassCard from "./GlassCard";
 const DEFAULT_DAILY_AD_BUDGET = 40;
 const INVITE_EMAIL = "aaronmcbride577@gmail.com";
 
-const GUIDE_STEPS = [
-  {
-    num: 1,
-    title: "Create your own Retell account",
-    desc: "Sign up at retell.ai using your own business email — this is the AI voice caller that qualifies and calls your leads.",
-  },
-  {
-    num: 2,
-    title: "Add a payment method inside Retell",
-    desc: "In Retell's billing settings, add a card. This is what covers your AI-caller minutes going forward — it's billed to you directly, not to us.",
-  },
-  {
-    num: 3,
-    title: "Invite us onto your Retell account",
-    desc: (
-      <>
-        In Retell, go to your team/member settings and invite{" "}
-        <CopyEmail /> with <strong className="text-white">Admin</strong>{" "}
-        access. This doesn&apos;t hand over ownership — it lets us build your
-        call agent and connect everything to GHL for you.
-      </>
-    ),
-  },
-  {
-    num: 4,
-    title: "Add a payment method to your GHL sub-account",
-    desc: "In your GHL sub-account (not our agency account), go to Settings → Billing and add a card there. That's what covers your texting and A2P carrier fees directly — separate from your Retell billing and separate from us.",
-  },
-];
-
 const inputStyle = {
   background: "rgba(255,255,255,0.05)",
   border: "1px solid rgba(255,255,255,0.1)",
@@ -70,6 +40,115 @@ function CopyEmail() {
   );
 }
 
+function ExternalLink({ href, children }: { href: string; children: React.ReactNode }) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="underline"
+      style={{ color: "#F5A623" }}
+    >
+      {children}
+    </a>
+  );
+}
+
+const GUIDE_STEPS = [
+  {
+    num: 1,
+    title: "Create your own Retell account",
+    summary: "Sign up at dashboard.retellai.com with your own business email.",
+    details: (
+      <ol className="list-decimal space-y-2 pl-4 text-sm" style={{ color: "#EAEAEA" }}>
+        <li>
+          Go to <ExternalLink href="https://dashboard.retellai.com/">dashboard.retellai.com</ExternalLink>{" "}
+          and click <strong className="text-white">Sign Up</strong>.
+        </li>
+        <li>Use your own business email — not a personal one, and not ours.</li>
+        <li>Verify your email if prompted. You&apos;re in.</li>
+      </ol>
+    ),
+  },
+  {
+    num: 2,
+    title: "Add a payment method inside Retell",
+    summary: "Dashboard → Billing → add a card.",
+    details: (
+      <ol className="list-decimal space-y-2 pl-4 text-sm" style={{ color: "#EAEAEA" }}>
+        <li>
+          In <ExternalLink href="https://dashboard.retellai.com/">the Retell dashboard</ExternalLink>,
+          find <strong className="text-white">Billing</strong> in the left-side menu.
+        </li>
+        <li>Add a card there.</li>
+        <li>
+          This is what covers your AI-caller minutes going forward — billed to you
+          directly, not to us.
+        </li>
+      </ol>
+    ),
+  },
+  {
+    num: 3,
+    title: "Invite us onto your Retell account",
+    summary: "Team settings → invite us as Developer (not Admin).",
+    details: (
+      <ol className="list-decimal space-y-2 pl-4 text-sm" style={{ color: "#EAEAEA" }}>
+        <li>In the Retell dashboard, open your workspace&apos;s team/user management settings.</li>
+        <li>
+          Invite <CopyEmail /> and set the role to{" "}
+          <strong className="text-white">Developer</strong>.
+        </li>
+        <li>
+          Developer gives full access to build and configure your call agent,
+          plus the API/webhook access needed to connect it to GHL — without
+          touching your billing or being able to manage other members. It
+          doesn&apos;t hand over ownership.
+        </li>
+        <li>
+          Not sure where the invite screen is? See{" "}
+          <ExternalLink href="https://docs.retellai.com/accounts/access-control">
+            Retell&apos;s access control docs
+          </ExternalLink>
+          .
+        </li>
+      </ol>
+    ),
+  },
+  {
+    num: 4,
+    title: "Add a payment method to your GHL sub-account",
+    summary: "In your sub-account (not our agency account): Settings → Billing → Add New Card.",
+    details: (
+      <ol className="list-decimal space-y-2 pl-4 text-sm" style={{ color: "#EAEAEA" }}>
+        <li>
+          Make sure you&apos;re inside <strong className="text-white">your</strong>{" "}
+          GHL sub-account — not our agency account.
+        </li>
+        <li>
+          Go to <strong className="text-white">Settings → Billing</strong>.
+        </li>
+        <li>
+          Find the <strong className="text-white">Payment Methods</strong> section,
+          click <strong className="text-white">Add New Card</strong>, and enter your
+          card details.
+        </li>
+        <li>
+          That&apos;s what covers your texting and A2P carrier fees directly —
+          separate from Retell, and separate from us.
+        </li>
+        <li>
+          Full walkthrough:{" "}
+          <ExternalLink href="https://help.gohighlevel.com/support/solutions/articles/155000004182-account-billing-dashboard">
+            GHL&apos;s billing dashboard guide
+          </ExternalLink>
+          .
+        </li>
+      </ol>
+    ),
+  },
+];
+
 export default function StepRetellBilling({
   data,
   onNext,
@@ -83,6 +162,7 @@ export default function StepRetellBilling({
 }) {
   const [connected, setConnected] = useState(data.retell_billing_connected ?? false);
   const [notes, setNotes] = useState(data.retell_notes ?? "");
+  const [expandedStep, setExpandedStep] = useState<number | null>(1);
 
   const estimate = estimateMonthlyCost(dailyAdBudget ?? DEFAULT_DAILY_AD_BUDGET);
 
@@ -162,29 +242,65 @@ export default function StepRetellBilling({
         </p>
       </div>
 
-      {/* Guide */}
+      {/* Guide — expandable step-by-step */}
       <div className="mb-6 space-y-3">
         {GUIDE_STEPS.map((step) => (
           <div
             key={step.num}
-            className="flex items-start gap-3 rounded-lg p-4"
+            className="rounded-lg overflow-hidden"
             style={{
               background: "rgba(255,255,255,0.03)",
               border: "1px solid rgba(255,255,255,0.06)",
             }}
           >
-            <span
-              className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold"
-              style={{ background: "rgba(245,166,35,0.15)", color: "#F5A623" }}
+            <button
+              type="button"
+              onClick={() =>
+                setExpandedStep(expandedStep === step.num ? null : step.num)
+              }
+              className="flex w-full items-start gap-3 p-4 text-left"
             >
-              {step.num}
-            </span>
-            <div className="flex-1">
-              <p className="text-sm font-semibold text-white">{step.title}</p>
-              <p className="mt-0.5 text-sm" style={{ color: "#8B95A8" }}>
-                {step.desc}
-              </p>
-            </div>
+              <span
+                className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold"
+                style={{ background: "rgba(245,166,35,0.15)", color: "#F5A623" }}
+              >
+                {step.num}
+              </span>
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-white">{step.title}</p>
+                <p className="mt-0.5 text-sm" style={{ color: "#8B95A8" }}>
+                  {step.summary}
+                </p>
+              </div>
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                className="mt-1 shrink-0 transition-transform duration-200"
+                style={{
+                  transform:
+                    expandedStep === step.num ? "rotate(180deg)" : "rotate(0deg)",
+                }}
+              >
+                <path
+                  d="M6 9l6 6 6-6"
+                  stroke="#4A5568"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+
+            {expandedStep === step.num && (
+              <div
+                className="px-4 pb-4 pt-1"
+                style={{ borderTop: "1px solid rgba(255,255,255,0.04)" }}
+              >
+                <div className="mt-3">{step.details}</div>
+              </div>
+            )}
           </div>
         ))}
       </div>
@@ -228,8 +344,8 @@ export default function StepRetellBilling({
         />
         <span className="text-sm" style={{ color: "#EAEAEA" }}>
           I&apos;ve created my Retell account, added a payment method to it,
-          invited <CopyEmail /> with Admin access, and added a payment method
-          to my GHL sub-account.
+          invited <CopyEmail /> as a Developer, and added a payment method to
+          my GHL sub-account.
         </span>
       </label>
 
