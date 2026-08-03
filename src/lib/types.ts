@@ -39,10 +39,14 @@ export interface OnboardingData {
   authorized_rep_phone: string | null;
   authorized_rep_email: string | null;
 
-  // Step 4 — Slack
+  // Step 4 — Retell / billing (client owns SMS, A2P, and AI-caller costs)
+  retell_billing_connected: boolean;
+  retell_notes: string | null;
+
+  // Step 5 — Slack
   slack_joined: boolean;
 
-  // Step 5 — Facebook
+  // Step 6 — Facebook
   fb_connected: boolean;
   fb_ad_account_id: string | null;
   fb_page_name: string | null;
@@ -54,7 +58,7 @@ export interface OnboardingData {
   owner_approval_confirmed: boolean;
   personal_payment_method: string | null;
 
-  // Step 6 — Kickoff
+  // Step 7 — Kickoff
   kickoff_booked: boolean;
   kickoff_booked_at: string | null;
 

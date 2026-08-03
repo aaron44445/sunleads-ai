@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabase } from "@/lib/supabase";
 
-const TOTAL_STEPS = 6;
+const TOTAL_STEPS = 7;
 
 export async function POST(request: NextRequest) {
   const { token, currentStep, nextStep, stepData } = await request.json();

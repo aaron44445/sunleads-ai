@@ -11,8 +11,9 @@ import StepSlack from "@/components/onboard/StepSlack";
 import StepFacebook from "@/components/onboard/StepFacebook";
 import StepKickoff from "@/components/onboard/StepKickoff";
 import StepComplete from "@/components/onboard/StepComplete";
+import StepRetellBilling from "@/components/onboard/StepRetellBilling";
 
-const TOTAL_STEPS = 6;
+const TOTAL_STEPS = 7;
 
 export default function OnboardClient({
   client,
@@ -143,12 +144,16 @@ export default function OnboardClient({
         ) : (
           <StepBusinessInfo data={data} onNext={handleNext} loading={loading} token={token} />
         ))}
-      {/* Step 4: Slack */}
+      {/* Step 4: Retell / billing (client owns SMS, A2P, and AI-caller costs) */}
       {step === 4 && (
+        <StepRetellBilling data={data} onNext={handleNext} loading={loading} />
+      )}
+      {/* Step 5: Slack */}
+      {step === 5 && (
         <StepSlack data={data} onNext={handleNext} loading={loading} />
       )}
-      {/* Step 5: Facebook access */}
-      {step === 5 && (
+      {/* Step 6: Facebook access */}
+      {step === 6 && (
         <StepFacebook
           data={data}
           onNext={handleNext}
@@ -156,8 +161,8 @@ export default function OnboardClient({
           variant={client.client_type}
         />
       )}
-      {/* Step 6: Kickoff call */}
-      {step === 6 && (
+      {/* Step 7: Kickoff call */}
+      {step === 7 && (
         <StepKickoff data={data} onNext={handleNext} loading={loading} />
       )}
     </div>

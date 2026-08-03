@@ -2,16 +2,16 @@ const TOP_LEVEL_STEPS = ["Campaign", "Onboarding", "Success Call"];
 
 function getTopLevelIndex(currentStep: number): number {
   if (currentStep <= 1) return 0; // Campaign setup
-  if (currentStep <= 5) return 1; // Onboarding (steps 2-5)
-  return 2; // Success Call (step 6)
+  if (currentStep <= 6) return 1; // Onboarding (steps 2-6)
+  return 2; // Success Call (step 7)
 }
 
 function getSubStep(currentStep: number): number {
-  // Steps 2,3,4,5 map to sub-steps 1,2,3,4
+  // Steps 2,3,4,5,6 map to sub-steps 1,2,3,4,5
   return currentStep - 1;
 }
 
-const SUB_STEP_COUNT = 4;
+const SUB_STEP_COUNT = 5;
 
 export default function StepIndicator({
   currentStep,
@@ -58,8 +58,8 @@ export default function StepIndicator({
         })}
       </div>
 
-      {/* Nested sub-step indicator for Onboarding (steps 2-5) */}
-      {currentStep >= 2 && currentStep <= 5 && (
+      {/* Nested sub-step indicator for Onboarding (steps 2-6) */}
+      {currentStep >= 2 && currentStep <= 6 && (
         <div className="mt-3 flex items-center justify-center gap-2">
           {Array.from({ length: SUB_STEP_COUNT }, (_, i) => i + 1).map((sub) => {
             const activeSub = getSubStep(currentStep);
