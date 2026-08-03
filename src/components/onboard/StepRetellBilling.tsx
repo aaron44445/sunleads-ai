@@ -6,6 +6,7 @@ import { estimateMonthlyCost, A2P_ONE_TIME_FEE } from "@/lib/costEstimate";
 import GlassCard from "./GlassCard";
 
 const DEFAULT_DAILY_AD_BUDGET = 40;
+const INVITE_EMAIL = "aaronmcbride577@gmail.com";
 
 const GUIDE_STEPS = [
   {
@@ -20,13 +21,20 @@ const GUIDE_STEPS = [
   },
   {
     num: 3,
-    title: "Connect that Retell account to your GHL sub-account",
-    desc: "In GoHighLevel, open the Retell connector app (under Integrations / Marketplace) and link it to the Retell account you just created.",
+    title: "Invite us onto your Retell account",
+    desc: (
+      <>
+        In Retell, go to your team/member settings and invite{" "}
+        <CopyEmail /> with <strong className="text-white">Admin</strong>{" "}
+        access. This doesn&apos;t hand over ownership — it lets us build your
+        call agent and connect everything to GHL for you.
+      </>
+    ),
   },
   {
     num: 4,
-    title: "Confirm SMS + A2P billing is on your sub-account",
-    desc: "Text messages and A2P carrier fees run through your GHL sub-account's own billing, same as the Retell minutes — nothing routes through our account.",
+    title: "Add a payment method to your GHL sub-account",
+    desc: "In your GHL sub-account (not our agency account), go to Settings → Billing and add a card there. That's what covers your texting and A2P carrier fees directly — separate from your Retell billing and separate from us.",
   },
 ];
 
@@ -34,6 +42,33 @@ const inputStyle = {
   background: "rgba(255,255,255,0.05)",
   border: "1px solid rgba(255,255,255,0.1)",
 };
+
+function CopyEmail() {
+  const [copied, setCopied] = useState(false);
+
+  function handleCopy() {
+    navigator.clipboard.writeText(INVITE_EMAIL);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={handleCopy}
+      className="inline-flex items-center gap-1.5 rounded px-1.5 py-0.5 text-xs font-mono transition-colors"
+      style={{
+        background: copied ? "rgba(127,255,0,0.15)" : "rgba(245,166,35,0.12)",
+        color: copied ? "#7FFF00" : "#F5A623",
+        cursor: "pointer",
+        border: "none",
+      }}
+      title="Click to copy"
+    >
+      {INVITE_EMAIL}
+    </button>
+  );
+}
 
 export default function StepRetellBilling({
   data,
@@ -192,7 +227,9 @@ export default function StepRetellBilling({
           className="mt-0.5 h-4 w-4 rounded accent-green-400"
         />
         <span className="text-sm" style={{ color: "#EAEAEA" }}>
-          I&apos;ve created my Retell account, added a payment method, and connected it to my GHL sub-account.
+          I&apos;ve created my Retell account, added a payment method to it,
+          invited <CopyEmail /> with Admin access, and added a payment method
+          to my GHL sub-account.
         </span>
       </label>
 
