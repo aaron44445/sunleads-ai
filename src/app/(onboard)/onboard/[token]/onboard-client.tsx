@@ -19,10 +19,12 @@ export default function OnboardClient({
   client,
   onboardingData,
   token,
+  dailyAdBudget,
 }: {
   client: Client;
   onboardingData: OnboardingData;
   token: string;
+  dailyAdBudget?: number | null;
 }) {
   const [step, setStep] = useState(client.current_step);
   const [data, setData] = useState(onboardingData);
@@ -146,7 +148,12 @@ export default function OnboardClient({
         ))}
       {/* Step 4: Retell / billing (client owns SMS, A2P, and AI-caller costs) */}
       {step === 4 && (
-        <StepRetellBilling data={data} onNext={handleNext} loading={loading} />
+        <StepRetellBilling
+          data={data}
+          onNext={handleNext}
+          loading={loading}
+          dailyAdBudget={dailyAdBudget}
+        />
       )}
       {/* Step 5: Slack */}
       {step === 5 && (

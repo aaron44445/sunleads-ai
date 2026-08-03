@@ -35,11 +35,20 @@ export default async function OnboardPage({
     notFound();
   }
 
+  // Fetch daily ad budget from the contract (drives the Retell/billing cost estimate).
+  // Not every client is guaranteed a contract row yet, so this degrades to null rather than 404ing.
+  const { data: contract } = await supabase
+    .from("contracts")
+    .select("daily_ad_budget")
+    .eq("client_id", client.id)
+    .maybeSingle();
+
   return (
     <OnboardClient
       client={client as Client}
       onboardingData={onboardingData as OnboardingData}
       token={token}
+      dailyAdBudget={contract?.daily_ad_budget ?? null}
     />
   );
 }

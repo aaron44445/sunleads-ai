@@ -2,7 +2,10 @@
 
 import { useState } from "react";
 import type { OnboardingData } from "@/lib/types";
+import { estimateMonthlyCost, A2P_ONE_TIME_FEE } from "@/lib/costEstimate";
 import GlassCard from "./GlassCard";
+
+const DEFAULT_DAILY_AD_BUDGET = 40;
 
 const GUIDE_STEPS = [
   {
@@ -36,13 +39,17 @@ export default function StepRetellBilling({
   data,
   onNext,
   loading,
+  dailyAdBudget,
 }: {
   data: OnboardingData;
   onNext: (data: Record<string, unknown>) => void;
   loading: boolean;
+  dailyAdBudget?: number | null;
 }) {
   const [connected, setConnected] = useState(data.retell_billing_connected ?? false);
   const [notes, setNotes] = useState(data.retell_notes ?? "");
+
+  const estimate = estimateMonthlyCost(dailyAdBudget ?? DEFAULT_DAILY_AD_BUDGET);
 
   function handleSubmit() {
     onNext({
@@ -83,19 +90,35 @@ export default function StepRetellBilling({
         <ul className="space-y-1.5 text-sm" style={{ color: "#EAEAEA" }}>
           <li className="flex items-start gap-2">
             <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: "#F5A623" }} />
-            <span>AI voice calls (Retell): roughly <strong className="text-white">$15&ndash;35/mo</strong></span>
+            <span>
+              AI voice calls (Retell): roughly{" "}
+              <strong className="text-white">
+                ${estimate.retellLow}&ndash;{estimate.retellHigh}/mo
+              </strong>
+            </span>
           </li>
           <li className="flex items-start gap-2">
             <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: "#F5A623" }} />
-            <span>Texting (GHL SMS): roughly <strong className="text-white">$1&ndash;3/mo</strong></span>
+            <span>
+              Texting (GHL SMS): roughly{" "}
+              <strong className="text-white">
+                ${estimate.smsLow}&ndash;{estimate.smsHigh}/mo
+              </strong>
+            </span>
           </li>
           <li className="flex items-start gap-2">
             <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: "#F5A623" }} />
-            <span>Carrier registration (A2P): a one-time <strong className="text-white">~$25</strong> fee, then <strong className="text-white">~$2&ndash;10/mo</strong></span>
+            <span>
+              Carrier registration (A2P): a one-time{" "}
+              <strong className="text-white">~${A2P_ONE_TIME_FEE}</strong> fee,
+              then <strong className="text-white">~$2&ndash;10/mo</strong>
+            </span>
           </li>
         </ul>
         <p className="mt-3 text-sm font-semibold" style={{ color: "#7FFF00" }}>
-          Typical total: ~$20&ndash;45/month, plus a ~$25 one-time fee in month one.
+          Typical total: ~${estimate.totalLow}&ndash;{estimate.totalHigh}/month
+          (~{estimate.leadsLow}&ndash;{estimate.leadsHigh} leads/mo at your ad
+          budget), plus a ~${A2P_ONE_TIME_FEE} one-time fee in month one.
         </p>
         <p className="mt-2 text-xs" style={{ color: "#8B95A8" }}>
           This is usage-based, not a flat subscription — it moves with how many
