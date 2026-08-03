@@ -66,6 +66,44 @@ export default function StepRetellBilling({
         </p>
       </div>
 
+      {/* Cost estimate */}
+      <div
+        className="mb-6 rounded-lg p-4"
+        style={{
+          background: "rgba(245,166,35,0.04)",
+          border: "1px solid rgba(245,166,35,0.12)",
+        }}
+      >
+        <p
+          className="mb-2 text-xs font-semibold uppercase tracking-wider"
+          style={{ color: "#F5A623" }}
+        >
+          What this actually costs
+        </p>
+        <ul className="space-y-1.5 text-sm" style={{ color: "#EAEAEA" }}>
+          <li className="flex items-start gap-2">
+            <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: "#F5A623" }} />
+            <span>AI voice calls (Retell): roughly <strong className="text-white">$15&ndash;35/mo</strong></span>
+          </li>
+          <li className="flex items-start gap-2">
+            <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: "#F5A623" }} />
+            <span>Texting (GHL SMS): roughly <strong className="text-white">$1&ndash;3/mo</strong></span>
+          </li>
+          <li className="flex items-start gap-2">
+            <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: "#F5A623" }} />
+            <span>Carrier registration (A2P): a one-time <strong className="text-white">~$25</strong> fee, then <strong className="text-white">~$2&ndash;10/mo</strong></span>
+          </li>
+        </ul>
+        <p className="mt-3 text-sm font-semibold" style={{ color: "#7FFF00" }}>
+          Typical total: ~$20&ndash;45/month, plus a ~$25 one-time fee in month one.
+        </p>
+        <p className="mt-2 text-xs" style={{ color: "#8B95A8" }}>
+          This is usage-based, not a flat subscription — it moves with how many
+          leads come in, not a fixed number. More ad spend and more leads means
+          a bit more here; a quiet month costs less.
+        </p>
+      </div>
+
       {/* Guide */}
       <div className="mb-6 space-y-3">
         {GUIDE_STEPS.map((step) => (
