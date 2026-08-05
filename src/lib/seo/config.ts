@@ -20,8 +20,14 @@ export const DEFAULT_TITLE =
 export const DEFAULT_DESCRIPTION =
   "AI appointment setting for solar companies. We capture leads, qualify them by voice and SMS in 60 seconds, and book them onto your reps' calendars.";
 
-export const OG_IMAGE = `${SITE_URL}/og-image.png`;
-export const LOGO_URL = `${SITE_URL}/logo.png`;
+/**
+ * Organization.logo. SVG is among the formats Google Images supports, so the
+ * mark stays sharp at any size without committing a binary.
+ *
+ * There is no OG image constant — app/opengraph-image.tsx generates that at
+ * request time from the same palette.
+ */
+export const LOGO_URL = `${SITE_URL}/logo.svg`;
 
 /** Feeds Organization.sameAs — helps Google associate the brand entity. */
 export const SOCIAL_PROFILES = ["https://www.youtube.com/@sunleadsai"];

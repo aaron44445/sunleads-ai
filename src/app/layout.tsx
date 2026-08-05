@@ -4,7 +4,6 @@ import "./globals.css";
 import {
   DEFAULT_DESCRIPTION,
   DEFAULT_TITLE,
-  OG_IMAGE,
   SITE_NAME,
   SITE_URL,
 } from "@/lib/seo/config";
@@ -38,20 +37,21 @@ export const metadata: Metadata = {
   // duplicate pages.
   alternates: { canonical: "/" },
 
+  // No `images` key here on purpose: app/opengraph-image.tsx and
+  // app/twitter-image.tsx supply them. An explicit images array would win over
+  // the file convention and point at an asset that does not exist.
   openGraph: {
     type: "website",
     siteName: SITE_NAME,
     title: DEFAULT_TITLE,
     description: DEFAULT_DESCRIPTION,
     url: SITE_URL,
-    images: [{ url: OG_IMAGE, width: 1200, height: 630, alt: SITE_NAME }],
   },
 
   twitter: {
     card: "summary_large_image",
     title: DEFAULT_TITLE,
     description: DEFAULT_DESCRIPTION,
-    images: [OG_IMAGE],
   },
 
   robots: {
