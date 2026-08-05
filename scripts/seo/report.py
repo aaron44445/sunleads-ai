@@ -133,6 +133,18 @@ def main():
     ap.add_argument("--max", type=int, default=40)
     ap.add_argument("--state", default="seo-state.json")
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument(
+        "--only-on-change",
+        action="store_true",
+        help="Post only when the issue set differs from the previous run. Lets "
+             "the job run daily for fast signal without a daily notification.",
+    )
+    ap.add_argument(
+        "--weekly-digest",
+        action="store_true",
+        help="Post even with no change (pair with --only-on-change on one "
+             "scheduled run per week, so silence never means 'job is broken').",
+    )
     a = ap.parse_args()
 
     webhook = os.environ.get("SLACK_WEBHOOK_URL")
@@ -151,19 +163,28 @@ def main():
     issues = flatten_issues(site, pages)
     fixed, introduced = diff(prev, issues)
 
+    changed = bool(fixed or introduced)
+    first_run = prev is None
+
+    # Always write state, even when staying silent — otherwise a change would
+    # be re-reported on every subsequent run.
+    with open(a.state, "w") as fh:
+        json.dump({"root": root, "issues": issues}, fh, indent=2)
+
+    if a.only_on_change and not changed and not first_run and not a.weekly_digest:
+        print("No change since last run; not posting.")
+        return
+
     payload = {
-        "text": f"Weekly SEO report for {root}",  # notification fallback
+        "text": f"SEO report for {root}",  # notification fallback
         "blocks": build_blocks(root, site, pages, issues, fixed, introduced,
-                               prev is not None),
+                               not first_run),
     }
 
     if a.dry_run:
         print(json.dumps(payload, indent=2))
     else:
         print(post(webhook, payload))
-
-    with open(a.state, "w") as fh:
-        json.dump({"root": root, "issues": issues}, fh, indent=2)
 
 
 if __name__ == "__main__":

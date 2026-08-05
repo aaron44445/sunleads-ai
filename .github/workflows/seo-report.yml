@@ -2,9 +2,12 @@ name: Weekly SEO report
 
 on:
   schedule:
-    # Mondays at 13:47 UTC. Off the hour on purpose — :00 is when every
-    # scheduled workflow on GitHub fires at once and runners queue.
-    - cron: "47 13 * * 1"
+    # Daily at 13:47 UTC, but the job stays silent unless something changed —
+    # a 4-page site produces the same findings every day, and a daily
+    # notification that is always identical stops being read within a week.
+    # Off the hour on purpose: :00 is when every scheduled workflow on GitHub
+    # fires at once and runners queue.
+    - cron: "47 13 * * *"
   workflow_dispatch:
 
 # Needed to commit the state file back for week-over-week diffing.
@@ -30,9 +33,14 @@ jobs:
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         run: |
+          # Monday also posts when nothing changed, so a quiet week stays
+          # distinguishable from a job that silently stopped working.
+          DIGEST=""
+          if [ "$(date -u +%u)" = "1" ]; then DIGEST="--weekly-digest"; fi
           python3 scripts/seo/report.py https://www.sunleadsai.com \
             --max 40 \
-            --state .github/seo-state.json
+            --state .github/seo-state.json \
+            --only-on-change $DIGEST
 
       # Persisting state in the repo rather than actions/cache: a weekly job
       # sits right on the 7-day cache eviction boundary, so the cache would
