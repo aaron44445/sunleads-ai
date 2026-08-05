@@ -294,8 +294,15 @@ def site_checks(root):
             loc = rr.headers.get("Location", "")
             out[f"redirect_{host}"] = f"{rr.status} -> {loc}"
             if rr.status in (302, 307):
-                add("warn", "temp-redirect",
-                    f"{host} uses {rr.status} (temporary) -> should be 301/308 permanent")
+                # Not merely an equity leak. Google does not transfer canonical
+                # status across a temporary redirect, so the redirecting host
+                # stays canonical while the target serves the content. Paired
+                # with missing canonical tags, this is how a site ends up
+                # indexed under the hostname that serves nothing.
+                add("critical", "temp-redirect",
+                    f"{host} uses {rr.status} (temporary) -> should be 301/308. "
+                    "Google keeps the redirecting host canonical across a "
+                    "temporary redirect, so the wrong hostname gets indexed.")
         elif rr.status:
             out[f"redirect_{host}"] = f"{rr.status} (no redirect)"
     return out
