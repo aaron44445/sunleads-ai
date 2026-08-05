@@ -1,10 +1,14 @@
 import LegalShell from "@/components/LegalShell";
+import { pageMetadata } from "@/lib/seo/metadata";
 
-export const metadata = {
-  title: "Contact Us — SunLeads AI",
+// Was "Contact Us — SunLeads AI" at 24 chars, leaving most of the SERP line
+// unused. This states what the page is for and carries the commercial terms.
+export const metadata = pageMetadata({
+  title: "Book a Strategy Call",
   description:
-    "Get in touch with SunLeads AI. We help solar companies generate qualified, booked appointments.",
-};
+    "Book a 20-minute call to see how SunLeads AI books qualified solar appointments onto your reps' calendars. No retainer pitch.",
+  path: "/contact",
+});
 
 const cardStyle = {
   borderRadius: "12px",

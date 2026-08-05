@@ -1,9 +1,13 @@
 import Link from "next/link";
 import LegalShell from "@/components/LegalShell";
+import { pageMetadata } from "@/lib/seo/metadata";
 
-export const metadata = {
-  title: "Terms and Conditions — SunLeads AI",
-};
+export const metadata = pageMetadata({
+  title: "Terms and Conditions",
+  description:
+    "Terms governing use of the SunLeads AI appointment-setting platform for solar installers, including billing, cancellation, and acceptable use.",
+  path: "/terms",
+});
 
 const heading = {
   fontSize: "18px",

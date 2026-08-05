@@ -1,9 +1,15 @@
 import Link from "next/link";
 import LegalShell from "@/components/LegalShell";
+import { pageMetadata } from "@/lib/seo/metadata";
 
-export const metadata = {
-  title: "Privacy Policy — SunLeads AI",
-};
+// Previously set only a title, so this page inherited the homepage's
+// description — identical metadata across three URLs.
+export const metadata = pageMetadata({
+  title: "Privacy Policy",
+  description:
+    "How SunLeads AI collects, uses, and protects data for solar companies using our AI appointment-setting platform.",
+  path: "/privacy",
+});
 
 const heading = {
   fontSize: "18px",

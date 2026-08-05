@@ -1,5 +1,12 @@
 import Link from "next/link";
 import Booking from "./Booking";
+import JsonLd from "@/components/JsonLd";
+import { DEFAULT_DESCRIPTION } from "@/lib/seo/config";
+import {
+  organizationSchema,
+  videoSchema,
+  websiteSchema,
+} from "@/lib/seo/schema";
 import "./v2.css";
 
 const VSL_URL = "https://www.youtube.com/embed/1S1jJ-kWA1k";
@@ -138,6 +145,13 @@ function Arrow() {
 export default function Home() {
   return (
     <div className="v2-root font-body">
+      <JsonLd
+        data={[
+          organizationSchema(DEFAULT_DESCRIPTION),
+          websiteSchema(),
+          videoSchema(),
+        ]}
+      />
       <div className="v2-progress" aria-hidden />
       <div className="v2-rails" aria-hidden />
 
