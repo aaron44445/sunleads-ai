@@ -1,0 +1,33 @@
+{
+  "name": "clearstream-round-1",
+  "goal": 4,
+  "constraints": {
+    "noRepeatFormat": true,
+    "noRepeatAngle": true
+  },
+  "split": [
+    {
+      "persona": "burned-skeptic",
+      "count": 1
+    },
+    {
+      "persona": "hard-water-transplant",
+      "count": 1
+    },
+    {
+      "persona": "locked-out-renter",
+      "count": 1
+    },
+    {
+      "persona": "color-protector",
+      "count": 1
+    }
+  ],
+  "made": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "remaining": 0
+}
