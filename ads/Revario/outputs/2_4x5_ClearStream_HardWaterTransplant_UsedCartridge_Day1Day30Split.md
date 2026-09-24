@@ -5,7 +5,7 @@
 | ClearStream 2.0 | hard-water-transplant | the used cartridge | Day 1 / Day 30 split: grey bg; hook top 6-24%, vertical split 26-72% with pills, subline 76-86%, small product + disclaimer bottom-right | Moved somewhere with hard water? This is what your hair has been rinsing in. (rhetorical question) | The Revario ClearStream shower filter catches rust, sediment and chlorine before it reaches you. | Day 1 · Day 30 · Illustration. Results vary with your local water. |
 
 - Model: Higgsfield `gpt_image_2_5`, quality high, 2k, 4:5
-- Reference images (inputs/media/): crops/cartridge_new.png, crops/cartridge_used.png, crops/product_chrome_with_cartridge.png, brand/type_sheet.png (font only)
+- Reference images (inputs/media/): crops/cartridge_new.png, crops/cartridge_used.png, crops/_old_product_crop_clipped.png, brand/type_sheet.png (font only)
 - Higgsfield job: b27fae67-5cd4-4dfe-ac35-c565d4b1f2f6
 
 ## Prompt

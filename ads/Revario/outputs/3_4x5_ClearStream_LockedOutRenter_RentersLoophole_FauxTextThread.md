@@ -5,7 +5,7 @@
 | ClearStream 2.0 | locked-out-renter | renter's loophole | Faux text thread: white bg; iMessage thread top 5-44%, hook 48-62%, subline 64-72%, pills bottom-left, product bottom-right | Your landlord said no to a softener. You don't have to ask about this. (direct address) | The Revario ClearStream shower filter screws onto your showerhead in 60 seconds and comes off when you move. | No tools · Fits any showerhead · Leaves with you |
 
 - Model: Higgsfield `gpt_image_2_5`, quality high, 2k, 4:5
-- Reference images (inputs/media/): crops/product_chrome_with_cartridge.png, brand/type_sheet.png (font only)
+- Reference images (inputs/media/): crops/_old_product_crop_clipped.png, brand/type_sheet.png (font only)
 - Higgsfield job: cbbe725a-8c36-4cf2-a921-8c4dd60d64e6 (v2; v1 9df51991 had 'Revário' typo)
 
 ## Prompt

@@ -5,7 +5,7 @@
 | ClearStream 2.0 | color-protector | protect the color | Salon receipt: photo-centric flat-lay; hook band top 6-22%, receipt left + product right 24-80%, subline band 84-94% | You spent $285 on your color. Your shower water is fading it. (provocative) | The Revario ClearStream shower filter cuts the chlorine that strips color between appointments. | Receipt: STUDIO SALON / COLOR + TONER + GLOSS / TOTAL $285.00 · note '+ shower filter $59.99' |
 
 - Model: Higgsfield `gpt_image_2_5`, quality high, 2k, 4:5
-- Reference images (inputs/media/): crops/product_chrome_with_cartridge.png, brand/type_sheet.png (font only)
+- Reference images (inputs/media/): crops/_old_product_crop_clipped.png, brand/type_sheet.png (font only)
 - Higgsfield job: 72f09c79-272b-4f38-9038-6789ae9fcc5f (v4. v1/v2 misaligned itemized receipt prices, so the receipt was cut to 3 lines. v3 dropped the product wordmark)
 
 ## Prompt

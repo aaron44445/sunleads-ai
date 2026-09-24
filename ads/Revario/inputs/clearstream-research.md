@@ -82,8 +82,10 @@ Researched 2026-09-24 from the PDP, the product JSON, theme CSS, web testing sou
 
 ## Media
 - `media/store/`: the 8 store images. **All appear AI-rendered** (`ChatGPT_Image_…` filenames) and have baked-in text.
-- `media/crops/`: product-only crops cut from them:
-  - `product_chrome_with_cartridge.png`
+- `media/crops/`: product-only crops cut from them. Use `ref_filter_and_cartridge.png` (uncropped, true relative scale) for every ad showing both parts:
+  - `ref_filter_and_cartridge.png` (cartridge height ≈ 0.72 × filter height)
+  - `four_finishes.png` (all four finishes, same size)
+  - `_old_product_crop_clipped.png` (round 1 only; left edge of filter clipped, do not reuse)
   - `cartridge_new.png`
   - `cartridge_used.png` (an AI render. Don't present it as a customer's result)
 - **Missing:** real photos of the shipped unit per finish, and a real used cartridge. Replace crops when they arrive.

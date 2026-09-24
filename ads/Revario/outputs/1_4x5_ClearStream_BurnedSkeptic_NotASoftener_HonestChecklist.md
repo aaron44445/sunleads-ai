@@ -5,7 +5,7 @@
 | ClearStream 2.0 | burned-skeptic | not a softener | Honest checklist: graphic-centric, slate bg; hook top 8-30%, subline 32-40%, two-column table bottom-left, product bottom-right | This shower filter won't soften your water. (contrarian) | It removes what rides along with hard water. That's the part your hair and skin feel. | Removes: Chlorine / Rust and sediment / Heavy metals · Won't do: Soften water / Lie to you |
 
 - Model: Higgsfield `gpt_image_2_5`, quality high, 2k, 4:5
-- Reference images (inputs/media/): crops/product_chrome_with_cartridge.png, brand/type_sheet.png (font only)
+- Reference images (inputs/media/): crops/_old_product_crop_clipped.png, brand/type_sheet.png (font only)
 - Higgsfield job: 61e8650b-dfd0-44a9-8b2c-1a4fd4eaa49d
 
 ## Prompt
